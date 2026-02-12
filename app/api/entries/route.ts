@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,18 +17,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const startDate = new Date(Date.UTC(year, month - 1, 1));
-  const endDate = new Date(Date.UTC(year, month, 1));
+  const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+  const endDate = new Date(Date.UTC(year, month, 1)).toISOString();
 
-  const entries = await prisma.entry.findMany({
-    where: {
-      date: { gte: startDate, lt: endDate },
-      userId,
-    },
-    orderBy: { date: "asc" },
+  const result = await db.execute({
+    sql: "SELECT id, date, client, ticket, comment, time, type, userId, createdAt, updatedAt FROM Entry WHERE date >= ? AND date < ? AND userId = ? ORDER BY date ASC",
+    args: [startDate, endDate, userId],
   });
 
-  return NextResponse.json(entries);
+  return NextResponse.json(result.rows);
 }
 
 export async function POST(request: NextRequest) {
@@ -57,13 +54,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const dayStart = new Date(Date.UTC(entryDate.getUTCFullYear(), entryDate.getUTCMonth(), entryDate.getUTCDate(), 0, 0, 0));
-  const dayEnd = new Date(Date.UTC(entryDate.getUTCFullYear(), entryDate.getUTCMonth(), entryDate.getUTCDate() + 1, 0, 0, 0));
+  const dayStart = new Date(Date.UTC(entryDate.getUTCFullYear(), entryDate.getUTCMonth(), entryDate.getUTCDate(), 0, 0, 0)).toISOString();
+  const dayEnd = new Date(Date.UTC(entryDate.getUTCFullYear(), entryDate.getUTCMonth(), entryDate.getUTCDate() + 1, 0, 0, 0)).toISOString();
 
-  const formationDay = await prisma.formationDay.findFirst({
-    where: { date: { gte: dayStart, lt: dayEnd } },
+  const formation = await db.execute({
+    sql: "SELECT id FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
+    args: [dayStart, dayEnd, userId],
   });
-  if (formationDay) {
+  if (formation.rows.length > 0) {
     return NextResponse.json(
       { error: "Impossible d'ajouter une entrée sur un jour de formation" },
       { status: 400 }
@@ -71,27 +69,22 @@ export async function POST(request: NextRequest) {
   }
 
   // Block entries on congé days (full day only)
-  const congeDay = await prisma.congeDay.findFirst({
-    where: { date: { gte: dayStart, lt: dayEnd }, userId },
+  const conge = await db.execute({
+    sql: "SELECT id, time FROM CongeDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
+    args: [dayStart, dayEnd, userId],
   });
-  if (congeDay && congeDay.time >= 1) {
+  if (conge.rows.length > 0 && (conge.rows[0].time as number) >= 1) {
     return NextResponse.json(
       { error: "Impossible d'ajouter une entrée sur un jour de congé complet" },
       { status: 400 }
     );
   }
 
-  const entry = await prisma.entry.create({
-    data: {
-      date: entryDate,
-      client,
-      ticket: ticket || null,
-      comment,
-      time: parseFloat(time),
-      type: type || null,
-      userId,
-    },
+  const now = new Date().toISOString();
+  const result = await db.execute({
+    sql: "INSERT INTO Entry (date, client, ticket, comment, time, type, userId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+    args: [entryDate.toISOString(), client, ticket || null, comment, parseFloat(time), type || null, userId, now, now],
   });
 
-  return NextResponse.json(entry, { status: 201 });
+  return NextResponse.json(result.rows[0], { status: 201 });
 }

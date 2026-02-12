@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
@@ -175,16 +175,20 @@ export async function POST(request: NextRequest) {
 
     // Optionally delete all existing entries for this user before importing
     if (replaceExisting) {
-      await prisma.entry.deleteMany({ where: { userId } });
+      await db.execute({ sql: "DELETE FROM Entry WHERE userId = ?", args: [userId] });
     }
 
-    // Create all entries for this user
-    const data = entries.map((e) => ({
-      ...e,
-      userId,
+    // Create all entries for this user using batch insert
+    const now = new Date().toISOString();
+    const statements = entries.map((e) => ({
+      sql: "INSERT INTO Entry (date, client, ticket, comment, time, type, userId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      args: [e.date.toISOString(), e.client, e.ticket, e.comment, e.time, e.type, userId, now, now],
     }));
 
-    await prisma.entry.createMany({ data });
+    // Batch in chunks of 100 to avoid hitting limits
+    for (let i = 0; i < statements.length; i += 100) {
+      await db.batch(statements.slice(i, i + 100));
+    }
 
     return NextResponse.json({
       message: `${entries.length} entrées importées avec succès`,

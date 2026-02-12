@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -18,19 +18,18 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const entries = await prisma.entry.findMany({
-    where: {
-      date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") },
-      userId,
-    },
-    orderBy: { date: "asc" },
+  const result = await db.execute({
+    sql: "SELECT id, date, client, ticket, comment, time, type FROM Entry WHERE date >= ? AND date <= ? AND userId = ? ORDER BY date ASC",
+    args: [from + "T00:00:00Z", to + "T23:59:59Z", userId],
   });
+
+  const entries = result.rows;
 
   if (format === "csv") {
     const header = "Date,Jour,Client,Ticket,Commentaires,Temps,Type";
     const days = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
     const rows = entries.map((e) => {
-      const d = new Date(e.date);
+      const d = new Date(e.date as string);
       const day = days[d.getUTCDay()];
       const dateStr = `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
       const escapeCsv = (s: string | null) => {
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
         }
         return s;
       };
-      return `${dateStr},${day},${escapeCsv(e.client)},${escapeCsv(e.ticket)},${escapeCsv(e.comment)},${e.time},${escapeCsv(e.type)}`;
+      return `${dateStr},${day},${escapeCsv(e.client as string)},${escapeCsv(e.ticket as string | null)},${escapeCsv(e.comment as string)},${e.time},${escapeCsv(e.type as string | null)}`;
     });
 
     const csv = [header, ...rows].join("\n");

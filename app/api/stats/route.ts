@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,45 +10,55 @@ export async function GET(request: NextRequest) {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
-  const where =
-    from && to
-      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") }, userId }
-      : { userId };
-
-  const entries = await prisma.entry.findMany({
-    where,
-    orderBy: { date: "asc" },
-  });
+  let entriesResult;
+  if (from && to) {
+    entriesResult = await db.execute({
+      sql: "SELECT * FROM Entry WHERE date >= ? AND date <= ? AND userId = ? ORDER BY date ASC",
+      args: [from + "T00:00:00Z", to + "T23:59:59Z", userId],
+    });
+  } else {
+    entriesResult = await db.execute({
+      sql: "SELECT * FROM Entry WHERE userId = ? ORDER BY date ASC",
+      args: [userId],
+    });
+  }
+  const entries = entriesResult.rows;
 
   const byClient: Record<string, number> = {};
   for (const e of entries) {
-    byClient[e.client] = (byClient[e.client] || 0) + e.time;
+    byClient[e.client as string] = (byClient[e.client as string] || 0) + (e.time as number);
   }
 
   const byType: Record<string, number> = {};
   for (const e of entries) {
-    const t = e.type || "Non défini";
-    byType[t] = (byType[t] || 0) + e.time;
+    const t = (e.type as string) || "Non défini";
+    byType[t] = (byType[t] || 0) + (e.time as number);
   }
 
   const byMonth: Record<string, number> = {};
   for (const e of entries) {
-    const d = new Date(e.date);
+    const d = new Date(e.date as string);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-    byMonth[key] = (byMonth[key] || 0) + e.time;
+    byMonth[key] = (byMonth[key] || 0) + (e.time as number);
   }
 
-  const formationWhere =
-    from && to
-      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") }, userId }
-      : { userId };
-  const formationDays = await prisma.formationDay.findMany({
-    where: formationWhere,
-  });
+  let formationResult;
+  if (from && to) {
+    formationResult = await db.execute({
+      sql: "SELECT * FROM FormationDay WHERE date >= ? AND date <= ? AND userId = ?",
+      args: [from + "T00:00:00Z", to + "T23:59:59Z", userId],
+    });
+  } else {
+    formationResult = await db.execute({
+      sql: "SELECT * FROM FormationDay WHERE userId = ?",
+      args: [userId],
+    });
+  }
+  const formationDays = formationResult.rows;
 
   const formationByMonth: Record<string, number> = {};
   for (const f of formationDays) {
-    const d = new Date(f.date);
+    const d = new Date(f.date as string);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
     formationByMonth[key] = (formationByMonth[key] || 0) + 1;
   }
@@ -58,7 +68,7 @@ export async function GET(request: NextRequest) {
     byType,
     byMonth,
     formationByMonth,
-    totalDays: entries.reduce((sum, e) => sum + e.time, 0),
+    totalDays: entries.reduce((sum, e) => sum + (e.time as number), 0),
     totalFormation: formationDays.length,
   });
 }

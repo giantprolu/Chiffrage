@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { hashPassword, setSessionCookie } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,25 +23,25 @@ export async function POST(request: NextRequest) {
   const normalizedUsername = username.trim().toLowerCase();
 
   // Check if username already exists
-  const existing = await prisma.user.findUnique({
-    where: { username: normalizedUsername },
+  const existing = await db.execute({
+    sql: "SELECT id FROM User WHERE username = ?",
+    args: [normalizedUsername],
   });
 
-  if (existing) {
+  if (existing.rows.length > 0) {
     return NextResponse.json(
       { error: "Ce nom d'utilisateur est déjà pris" },
       { status: 409 }
     );
   }
 
-  const user = await prisma.user.create({
-    data: {
-      username: normalizedUsername,
-      password: hashPassword(password),
-    },
+  const result = await db.execute({
+    sql: "INSERT INTO User (username, password) VALUES (?, ?) RETURNING id, username",
+    args: [normalizedUsername, hashPassword(password)],
   });
 
-  await setSessionCookie(user.id);
+  const user = result.rows[0];
+  await setSessionCookie(user.id as number);
 
   return NextResponse.json({ id: user.id, username: user.username, isNew: true }, { status: 201 });
 }

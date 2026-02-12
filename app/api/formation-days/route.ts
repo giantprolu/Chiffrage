@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,16 +16,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const startDate = new Date(Date.UTC(year, month - 1, 1));
-  const endDate = new Date(Date.UTC(year, month, 1));
+  const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+  const endDate = new Date(Date.UTC(year, month, 1)).toISOString();
 
-  const days = await prisma.formationDay.findMany({
-    where: {
-      date: { gte: startDate, lt: endDate },
-      userId,
-    },
-    orderBy: { date: "asc" },
+  const result = await db.execute({
+    sql: "SELECT * FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? ORDER BY date ASC",
+    args: [startDate, endDate, userId],
   });
 
-  return NextResponse.json(days);
+  return NextResponse.json(result.rows);
 }

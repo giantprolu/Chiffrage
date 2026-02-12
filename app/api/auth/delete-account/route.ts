@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId, clearSessionCookie } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
@@ -9,11 +9,11 @@ export async function DELETE() {
   }
 
   // Delete all user data then the user itself
-  await prisma.$transaction([
-    prisma.entry.deleteMany({ where: { userId } }),
-    prisma.congeDay.deleteMany({ where: { userId } }),
-    prisma.formationDay.deleteMany({ where: { userId } }),
-    prisma.user.delete({ where: { id: userId } }),
+  await db.batch([
+    { sql: "DELETE FROM Entry WHERE userId = ?", args: [userId] },
+    { sql: "DELETE FROM CongeDay WHERE userId = ?", args: [userId] },
+    { sql: "DELETE FROM FormationDay WHERE userId = ?", args: [userId] },
+    { sql: "DELETE FROM User WHERE id = ?", args: [userId] },
   ]);
 
   await clearSessionCookie();

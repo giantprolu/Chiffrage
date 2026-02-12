@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
@@ -9,10 +9,12 @@ export async function GET() {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, username: true },
+  const result = await db.execute({
+    sql: "SELECT id, username FROM User WHERE id = ?",
+    args: [userId],
   });
+
+  const user = result.rows[0];
 
   if (!user) {
     return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
