@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { InputText } from "primereact/inputtext";
+import { Password } from "primereact/password";
+import { Button } from "primereact/button";
+import { Card } from "primereact/card";
+import { TabView, TabPanel } from "primereact/tabview";
+import { Message } from "primereact/message";
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [activeIndex, setActiveIndex] = useState(0);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const mode = activeIndex === 0 ? "login" : "register";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +40,6 @@ export default function LoginPage() {
         return;
       }
 
-      // New user → redirect to import page
       if (data.isNew) {
         router.push("/import");
       } else {
@@ -45,101 +52,86 @@ export default function LoginPage() {
     }
   };
 
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+      {error && <Message severity="error" text={error} className="w-full" />}
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="username" className="text-sm font-semibold text-color-secondary">
+          Nom d&apos;utilisateur
+        </label>
+        <InputText
+          id="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Votre nom d'utilisateur"
+          required
+          autoFocus
+          className="w-full"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="password" className="text-sm font-semibold text-color-secondary">
+          Mot de passe
+        </label>
+        <Password
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Votre mot de passe"
+          toggleMask
+          feedback={mode === "register"}
+          required
+          className="w-full"
+          inputClassName="w-full"
+          pt={{ input: { minLength: 4 } }}
+        />
+      </div>
+
+      <Button
+        type="submit"
+        label={
+          loading
+            ? "Chargement..."
+            : mode === "login"
+            ? "Se connecter"
+            : "S'inscrire"
+        }
+        icon={loading ? "pi pi-spin pi-spinner" : "pi pi-sign-in"}
+        loading={loading}
+        disabled={loading}
+        className="w-full"
+      />
+    </form>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-950">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Chiffrage
-          </h1>
-          <p className="text-sm text-zinc-500 mt-1">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-color">Chiffrage</h1>
+          <p className="text-sm text-color-secondary mt-1">
             Suivi du chiffrage quotidien
           </p>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm p-6">
-          {/* Tabs */}
-          <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl mb-6">
-            <button
-              onClick={() => {
-                setMode("login");
-                setError("");
-              }}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                mode === "login"
-                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              Connexion
-            </button>
-            <button
-              onClick={() => {
-                setMode("register");
-                setError("");
-              }}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
-                mode === "register"
-                  ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-            >
-              Inscription
-            </button>
-          </div>
-
-          {/* Error */}
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </div>
-          )}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                Nom d&apos;utilisateur
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                placeholder="Votre nom d'utilisateur"
-                required
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-                placeholder="Votre mot de passe"
-                required
-                minLength={4}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-sm transition-all"
-            >
-              {loading
-                ? "Chargement..."
-                : mode === "login"
-                ? "Se connecter"
-                : "S'inscrire"}
-            </button>
-          </form>
-        </div>
+        <Card className="shadow-lg">
+          <TabView
+            activeIndex={activeIndex}
+            onTabChange={(e) => {
+              setActiveIndex(e.index);
+              setError("");
+            }}
+          >
+            <TabPanel header="Connexion" leftIcon="pi pi-sign-in mr-2">
+              {formContent}
+            </TabPanel>
+            <TabPanel header="Inscription" leftIcon="pi pi-user-plus mr-2">
+              {formContent}
+            </TabPanel>
+          </TabView>
+        </Card>
       </div>
     </div>
   );

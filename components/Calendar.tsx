@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "primereact/button";
+import { Tag } from "primereact/tag";
+import { Message } from "primereact/message";
 import DayCell, { Entry, FormationDay, CongeDay } from "./DayCell";
 import EntryModal from "./EntryModal";
 import MonthNav from "./MonthNav";
@@ -42,12 +45,10 @@ export default function Calendar() {
     fetchData();
   }, [fetchData]);
 
-  // Build calendar grid
   const firstDay = new Date(year, month - 1, 1);
   const lastDay = new Date(year, month, 0);
   const daysInMonth = lastDay.getDate();
 
-  // Monday=0, Sunday=6
   let startDow = firstDay.getDay() - 1;
   if (startDow < 0) startDow = 6;
 
@@ -78,21 +79,18 @@ export default function Calendar() {
 
   const isDayBlocked = (day: number) => {
     const conge = getCongeDay(day);
-    return isWeekend(day) || !!getFormationDay(day) || (!!conge && conge.time >= 1);
+    const formation = getFormationDay(day);
+    return isWeekend(day) || (!!formation && (formation.time ?? 1) >= 1) || (!!conge && conge.time >= 1);
   };
 
-  // Month totals
   const totalWork = entries.reduce((sum, e) => sum + e.time, 0);
-  const totalFormation = formationDays.length;
+  const totalFormation = formationDays.reduce((sum, f) => sum + (f.time ?? 1), 0);
   const totalConge = congeDays.reduce((sum, c) => sum + (c.time ?? 1), 0);
-
-  // --- Handlers ---
 
   const handleDayClick = (day: number) => {
     const ds = dateStr(day);
 
     if (mode === "copy") {
-      // Paste on click
       if (!isDayBlocked(day)) {
         handlePaste(day);
       }
@@ -100,14 +98,12 @@ export default function Calendar() {
     }
 
     if (mode === "select") {
-      // Toggle selection
       setSelectedDates((prev) =>
         prev.includes(ds) ? prev.filter((d) => d !== ds) : [...prev, ds]
       );
       return;
     }
 
-    // Normal mode: open modal for this day
     setSelectedDates([ds]);
     setShowModal(true);
   };
@@ -115,8 +111,7 @@ export default function Calendar() {
   const handleCopy = async () => {
     if (selectedDates.length === 0) return;
     const firstDate = selectedDates[0];
-    // Fetch entries for the specific date (may be from another month)
-    const [y, m, d] = firstDate.split("-").map(Number);
+    const [y, m] = firstDate.split("-").map(Number);
     const res = await fetch(`/api/entries?month=${m}&year=${y}`);
     const allEntriesForMonth: Entry[] = await res.json();
     const dayEntries = allEntriesForMonth.filter((e) => e.date.startsWith(firstDate));
@@ -129,9 +124,11 @@ export default function Calendar() {
   const handlePaste = async (day: number) => {
     const ds = dateStr(day);
     const conge = getCongeDay(day);
+    const formation = getFormationDay(day);
     const congeTime = conge?.time ?? 0;
+    const fmtTime = formation?.time ?? 0;
     const existingTime = getEntriesForDay(day).reduce((sum, e) => sum + e.time, 0);
-    let remaining = Math.round((1 - congeTime - existingTime) * 10) / 10;
+    let remaining = Math.round((1 - congeTime - fmtTime - existingTime) * 10) / 10;
 
     for (const entry of copiedEntries) {
       if (remaining <= 0) break;
@@ -159,13 +156,11 @@ export default function Calendar() {
     setSelectedDates([]);
   };
 
-  // Collect all unique months from selectedDates + current month for modal data
   const [modalEntries, setModalEntries] = useState<Entry[]>([]);
   const [modalFormation, setModalFormation] = useState<FormationDay[]>([]);
   const [modalConge, setModalConge] = useState<CongeDay[]>([]);
 
   const fetchModalData = useCallback(async () => {
-    // Get unique year-month combos from selectedDates
     const months = new Set<string>();
     months.add(`${year}-${month}`);
     for (const d of selectedDates) {
@@ -224,8 +219,12 @@ export default function Calendar() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        {/* Select mode toggle */}
-        <button
+        <Button
+          label={mode === "select" ? `${selectedDates.length} jour${selectedDates.length > 1 ? "s" : ""} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
+          icon="pi pi-check-square"
+          size="small"
+          severity={mode === "select" ? undefined : "secondary"}
+          outlined={mode !== "select"}
           onClick={() => {
             if (mode === "select") {
               cancelMode();
@@ -235,57 +234,43 @@ export default function Calendar() {
               setSelectedDates([]);
             }
           }}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            mode === "select"
-              ? "bg-blue-500 text-white shadow-sm"
-              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-          }`}
-        >
-          {mode === "select" ? `${selectedDates.length} jour${selectedDates.length > 1 ? "s" : ""} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
-        </button>
+        />
 
-        {/* Multi-select actions */}
         {mode === "select" && selectedDates.length > 0 && (
           <>
-            <button
+            <Button
+              label="Éditer"
+              icon="pi pi-pencil"
+              size="small"
               onClick={openMultiEdit}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 shadow-sm transition-all"
-            >
-              Éditer
-            </button>
-            <button
+            />
+            <Button
+              label="Copier"
+              icon="pi pi-copy"
+              size="small"
+              severity="help"
               onClick={handleCopy}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-500 text-white hover:bg-indigo-600 shadow-sm transition-all"
-            >
-              Copier
-            </button>
+            />
           </>
         )}
 
-        {/* Copy mode banner */}
         {mode === "copy" && (
-          <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-            <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              {copiedEntries.length} tâche{copiedEntries.length > 1 ? "s" : ""} copiée{copiedEntries.length > 1 ? "s" : ""} — cliquez sur un jour pour coller
-            </span>
-            <button
-              onClick={cancelMode}
-              className="px-3 py-1 rounded-md text-xs font-medium bg-indigo-200 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-300 dark:hover:bg-indigo-700 transition-colors"
-            >
-              Annuler
-            </button>
-          </div>
+          <Message
+            severity="info"
+            text={`${copiedEntries.length} tâche${copiedEntries.length > 1 ? "s" : ""} copiée${copiedEntries.length > 1 ? "s" : ""} — cliquez sur un jour pour coller`}
+            className="ml-2"
+          />
         )}
 
-        {/* Cancel any mode */}
         {(mode === "select" || mode === "copy") && (
-          <button
+          <Button
+            label="Annuler"
+            icon="pi pi-times"
+            size="small"
+            text
+            severity="secondary"
             onClick={cancelMode}
-            className="px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-          >
-            ✕ Annuler
-          </button>
+          />
         )}
       </div>
 
@@ -320,28 +305,15 @@ export default function Calendar() {
       </div>
 
       {/* Footer stats */}
-      <div className="mt-5 flex items-center gap-6 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-blue-400" />
-          <span className="text-zinc-600 dark:text-zinc-400">
-            Travail : <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalWork}j</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-red-400" />
-          <span className="text-zinc-600 dark:text-zinc-400">
-            Formation : <span className="font-bold text-red-600 dark:text-red-400">{totalFormation}j</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-orange-400" />
-          <span className="text-zinc-600 dark:text-zinc-400">
-            Congé : <span className="font-bold text-orange-600 dark:text-orange-400">{totalConge}j</span>
-          </span>
-        </div>
-        <div className="ml-auto text-zinc-500 dark:text-zinc-400">
-          Total : <span className="font-bold text-zinc-900 dark:text-zinc-100">{totalWork + totalFormation + totalConge}j</span>
-        </div>
+      <div className="mt-5 flex items-center gap-4 flex-wrap">
+        <Tag icon="pi pi-briefcase" severity="info" value={`Travail : ${totalWork}j`} />
+        <Tag icon="pi pi-book" severity="danger" value={`Formation : ${totalFormation}j`} />
+        <Tag icon="pi pi-calendar-minus" severity="warning" value={`Congé : ${totalConge}j`} />
+        <Tag
+          className="ml-auto"
+          severity="secondary"
+          value={`Total : ${totalWork + totalFormation + totalConge}j`}
+        />
       </div>
 
       {/* Legend */}
@@ -379,10 +351,30 @@ export default function Calendar() {
             fetchData();
             fetchModalData();
           }}
+          onToggleFormation={async (date: string, time?: number) => {
+            const existing = formationDays.find((f) => f.date.startsWith(date));
+            if (existing && time !== undefined) {
+              await fetch(`/api/formation-days?date=${date}`, { method: "DELETE" });
+              await fetch("/api/formation-days", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, time }),
+              });
+            } else if (existing) {
+              await fetch(`/api/formation-days?date=${date}`, { method: "DELETE" });
+            } else {
+              await fetch("/api/formation-days", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, time: time ?? 1 }),
+              });
+            }
+            await fetchData();
+            await fetchModalData();
+          }}
           onToggleConge={async (date: string, time?: number) => {
             const existing = congeDays.find((c) => c.date.startsWith(date));
             if (existing && time !== undefined) {
-              // Update congé time (e.g. switch from 1j to 0.5j)
               await fetch(`/api/conge-days?date=${date}`, { method: "DELETE" });
               await fetch("/api/conge-days", {
                 method: "POST",
@@ -390,10 +382,8 @@ export default function Calendar() {
                 body: JSON.stringify({ date, time }),
               });
             } else if (existing) {
-              // Remove congé
               await fetch(`/api/conge-days?date=${date}`, { method: "DELETE" });
             } else {
-              // Add congé
               await fetch("/api/conge-days", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

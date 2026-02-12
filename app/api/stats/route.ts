@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   for (const f of formationDays) {
     const d = new Date(f.date as string);
     const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-    formationByMonth[key] = (formationByMonth[key] || 0) + 1;
+    formationByMonth[key] = (formationByMonth[key] || 0) + ((f.time as number) ?? 1);
   }
 
   return NextResponse.json({
@@ -69,6 +69,6 @@ export async function GET(request: NextRequest) {
     byMonth,
     formationByMonth,
     totalDays: entries.reduce((sum, e) => sum + (e.time as number), 0),
-    totalFormation: formationDays.length,
+    totalFormation: formationDays.reduce((sum, f) => sum + ((f.time as number) ?? 1), 0),
   });
 }

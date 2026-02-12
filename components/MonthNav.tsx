@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "primereact/button";
+
 const MONTH_NAMES = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
@@ -24,21 +26,25 @@ export default function MonthNav({ month, year, onChange }: MonthNavProps) {
 
   return (
     <div className="flex items-center justify-between gap-4 mb-4">
-      <button
+      <Button
+        icon="pi pi-chevron-left"
         onClick={prev}
-        className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
-      >
-        &larr;
-      </button>
+        rounded
+        text
+        severity="secondary"
+        aria-label="Mois précédent"
+      />
       <h2 className="text-xl font-semibold">
         {MONTH_NAMES[month - 1]} {year}
       </h2>
-      <button
+      <Button
+        icon="pi pi-chevron-right"
         onClick={next}
-        className="px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors"
-      >
-        &rarr;
-      </button>
+        rounded
+        text
+        severity="secondary"
+        aria-label="Mois suivant"
+      />
     </div>
   );
 }

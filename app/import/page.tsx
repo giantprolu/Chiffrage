@@ -1,34 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { FileUpload, FileUploadHandlerEvent } from "primereact/fileupload";
+import { Button } from "primereact/button";
+import { Checkbox } from "primereact/checkbox";
+import { Card } from "primereact/card";
+import { Message } from "primereact/message";
+import { Tag } from "primereact/tag";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Divider } from "primereact/divider";
+
+const COLUMNS = [
+  { field: "col", header: "Colonne", style: { fontFamily: "monospace", fontWeight: 600 } },
+  { field: "required", header: "Obligatoire" },
+  { field: "description", header: "Description" },
+];
+
+const COLUMN_DATA = [
+  { col: "Date", required: "Oui", description: "Date de l'entrée (JJ/MM/AAAA ou date Excel)" },
+  { col: "Client", required: "Oui", description: "Nom du client (ex : Magellan, Interne…)" },
+  { col: "Ticket", required: "Non", description: "Numéro de ticket ou référence" },
+  { col: "Commentaires", required: "Oui", description: "Description du travail effectué" },
+  { col: "Temps", required: "Oui", description: "Temps passé en fraction de journée (0.5 = demi-journée)" },
+  { col: "Type", required: "Non", description: "Type d'activité (ex : Dev, Réunion, Support…)" },
+];
 
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ message: string; success: boolean } | null>(null);
-  const [dragOver, setDragOver] = useState(false);
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const fileUploadRef = useRef<FileUpload>(null);
   const router = useRouter();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    setFile(f);
-    setResult(null);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const f = e.dataTransfer.files?.[0] || null;
+  const handleSelect = (e: FileUploadHandlerEvent) => {
+    const f = e.files?.[0] || null;
     if (f) {
-      const ext = f.name.toLowerCase();
-      if (ext.endsWith(".xlsx") || ext.endsWith(".xls") || ext.endsWith(".csv")) {
-        setFile(f);
-        setResult(null);
-      } else {
-        setResult({ message: "Format non supporté. Utilisez .xlsx, .xls ou .csv", success: false });
-      }
+      setFile(f);
+      setResult(null);
     }
   };
 
@@ -66,192 +77,141 @@ export default function ImportPage() {
   return (
     <div className="max-w-xl mx-auto p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-          Importer un emploi du temps
-        </h1>
-        <p className="text-sm text-zinc-500 mt-1">
+        <h1 className="text-xl font-bold">Importer un emploi du temps</h1>
+        <p className="text-sm text-color-secondary mt-1">
           Importez vos données depuis un fichier Excel (.xlsx) ou CSV.
         </p>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-700 shadow-sm p-6 space-y-5">
-        {/* Format info */}
-        <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 space-y-3">
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Format attendu</p>
+      <Card className="shadow-sm">
+        <div className="space-y-5">
+          {/* Format info */}
+          <Message
+            severity="info"
+            className="w-full"
+            content={
+              <div className="space-y-3 w-full">
+                <p className="text-sm font-semibold">Format attendu</p>
 
-          {/* Colonnes */}
-          <div>
-            <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1.5">Colonnes requises :</p>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-blue-600 dark:text-blue-400">
-                <thead>
-                  <tr className="border-b border-blue-200 dark:border-blue-800/50">
-                    <th className="text-left py-1 pr-3 font-semibold">Colonne</th>
-                    <th className="text-left py-1 pr-3 font-semibold">Obligatoire</th>
-                    <th className="text-left py-1 font-semibold">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-blue-100 dark:divide-blue-900/50">
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Date</td>
-                    <td className="py-1 pr-3">Oui</td>
-                    <td className="py-1">Date de l&apos;entrée (JJ/MM/AAAA ou date Excel)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Client</td>
-                    <td className="py-1 pr-3">Oui</td>
-                    <td className="py-1">Nom du client (ex : Magellan, Interne…)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Ticket</td>
-                    <td className="py-1 pr-3">Non</td>
-                    <td className="py-1">Numéro de ticket ou référence</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Commentaires</td>
-                    <td className="py-1 pr-3">Oui</td>
-                    <td className="py-1">Description du travail effectué</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Temps</td>
-                    <td className="py-1 pr-3">Oui</td>
-                    <td className="py-1">Temps passé en fraction de journée (ex : 0.5 = demi-journée, 1 = journée)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 pr-3 font-mono font-medium">Type</td>
-                    <td className="py-1 pr-3">Non</td>
-                    <td className="py-1">Type d&apos;activité (ex : Dev, Réunion, Support…)</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+                <DataTable
+                  value={COLUMN_DATA}
+                  size="small"
+                  className="text-xs"
+                  stripedRows
+                >
+                  {COLUMNS.map((col) => (
+                    <Column
+                      key={col.field}
+                      field={col.field}
+                      header={col.header}
+                      style={col.style}
+                    />
+                  ))}
+                </DataTable>
 
-          {/* Format spécifique */}
-          <div className="space-y-1.5 text-xs text-blue-600 dark:text-blue-400">
-            <p>
-              <strong>Excel (.xlsx) :</strong> Un onglet par mois nommé avec le nom du mois (Septembre, Octobre, Novembre…). Chaque onglet contient les colonnes ci-dessus.
-            </p>
-            <p>
-              <strong>CSV (.csv) :</strong> Un seul fichier avec toutes les entrées. Les dates doivent être au format <span className="font-mono">JJ/MM/AAAA</span> ou <span className="font-mono">AAAA-MM-JJ</span>. Séparateur : virgule.
-            </p>
-          </div>
+                <Divider />
 
-          {/* Exemple */}
-          <div>
-            <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">Exemple :</p>
-            <div className="overflow-x-auto rounded-lg bg-blue-100/60 dark:bg-blue-900/30 p-2">
-              <table className="text-[11px] font-mono text-blue-700 dark:text-blue-300 whitespace-nowrap">
-                <thead>
-                  <tr>
-                    {["Date", "Client", "Ticket", "Commentaires", "Temps", "Type"].map((h) => (
-                      <th key={h} className="text-left pr-4 pb-1 font-bold">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="pr-4">12/02/2026</td>
-                    <td className="pr-4">Magellan</td>
-                    <td className="pr-4">TK-123</td>
-                    <td className="pr-4">Développement feature X</td>
-                    <td className="pr-4">0.5</td>
-                    <td className="pr-4">Dev</td>
-                  </tr>
-                  <tr>
-                    <td className="pr-4">12/02/2026</td>
-                    <td className="pr-4">Interne</td>
-                    <td className="pr-4"></td>
-                    <td className="pr-4">Réunion d&apos;équipe</td>
-                    <td className="pr-4">0.25</td>
-                    <td className="pr-4">Réunion</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+                <div className="space-y-1 text-xs">
+                  <p>
+                    <Tag value="Excel (.xlsx)" severity="success" className="mr-1" />
+                    Un onglet par mois nommé avec le nom du mois. Chaque onglet contient les colonnes ci-dessus.
+                  </p>
+                  <p>
+                    <Tag value="CSV (.csv)" severity="info" className="mr-1" />
+                    Un seul fichier avec toutes les entrées. Dates au format JJ/MM/AAAA ou AAAA-MM-JJ.
+                  </p>
+                </div>
+              </div>
+            }
+          />
 
-        {/* Drop zone */}
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-            dragOver
-              ? "border-blue-400 bg-blue-50 dark:bg-blue-950/20"
-              : "border-zinc-300 dark:border-zinc-600 hover:border-zinc-400 dark:hover:border-zinc-500"
-          }`}
-        >
-          <input
-            type="file"
+          {/* File upload */}
+          <FileUpload
+            ref={fileUploadRef}
+            mode="advanced"
             accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            maxFileSize={10000000}
+            customUpload
+            uploadHandler={handleSelect}
+            auto
+            chooseLabel="Parcourir"
+            chooseOptions={{ icon: "pi pi-upload", className: "p-button-outlined" }}
+            emptyTemplate={
+              <div className="flex flex-col items-center text-color-secondary p-4">
+                <i className="pi pi-cloud-upload text-4xl mb-2" />
+                <p className="text-sm">Glissez un fichier ici</p>
+                <p className="text-xs opacity-60">.xlsx, .xls ou .csv</p>
+              </div>
+            }
           />
-          <div className="space-y-2">
-            <svg className="mx-auto h-10 w-10 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-            </svg>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {file ? (
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">{file.name}</span>
-              ) : (
-                <>Glissez un fichier ici ou <span className="text-blue-500 font-medium">parcourez</span></>
-              )}
-            </p>
-            <p className="text-xs text-zinc-400">.xlsx, .xls ou .csv</p>
+
+          {file && (
+            <div className="flex items-center gap-2">
+              <i className="pi pi-file text-color-secondary" />
+              <span className="text-sm font-medium">{file.name}</span>
+              <Button
+                icon="pi pi-times"
+                text
+                rounded
+                severity="danger"
+                size="small"
+                onClick={() => {
+                  setFile(null);
+                  fileUploadRef.current?.clear();
+                }}
+              />
+            </div>
+          )}
+
+          {/* Result */}
+          {result && (
+            <Message
+              severity={result.success ? "success" : "error"}
+              text={result.message}
+              className="w-full"
+            />
+          )}
+
+          {/* Replace option */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              inputId="replace"
+              checked={replaceExisting}
+              onChange={(e) => setReplaceExisting(e.checked ?? false)}
+            />
+            <label htmlFor="replace" className="text-sm text-color-secondary cursor-pointer">
+              Remplacer toutes les données existantes
+            </label>
+          </div>
+
+          {replaceExisting && (
+            <Message
+              severity="warn"
+              text="Toutes vos entrées actuelles seront supprimées et remplacées par le contenu du fichier."
+              className="w-full"
+            />
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button
+              label={loading ? "Import en cours…" : "Importer"}
+              icon="pi pi-upload"
+              loading={loading}
+              disabled={!file || loading}
+              onClick={handleImport}
+              className="flex-1"
+            />
+            <Button
+              label={result?.success ? "Continuer" : "Passer"}
+              icon="pi pi-arrow-right"
+              severity="secondary"
+              outlined
+              onClick={() => router.push("/")}
+            />
           </div>
         </div>
-
-        {/* Result */}
-        {result && (
-          <div
-            className={`p-3 rounded-xl border text-sm ${
-              result.success
-                ? "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800/50 text-green-600 dark:text-green-400"
-                : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400"
-            }`}
-          >
-            {result.message}
-          </div>
-        )}
-
-        {/* Replace option */}
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={replaceExisting}
-            onChange={(e) => setReplaceExisting(e.target.checked)}
-            className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-500 focus:ring-blue-400"
-          />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Remplacer toutes les données existantes
-          </span>
-        </label>
-        {replaceExisting && (
-          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-600 dark:text-amber-400">
-            Toutes vos entrées actuelles seront supprimées et remplacées par le contenu du fichier.
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleImport}
-            disabled={!file || loading}
-            className="flex-1 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-sm transition-all"
-          >
-            {loading ? "Import en cours…" : "Importer"}
-          </button>
-          <button
-            onClick={() => router.push("/")}
-            className="px-6 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-medium text-sm transition-all"
-          >
-            {result?.success ? "Continuer" : "Passer"}
-          </button>
-        </div>
-      </div>
+      </Card>
     </div>
   );
 }

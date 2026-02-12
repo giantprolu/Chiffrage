@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const dayEnd = new Date(Date.UTC(congeDate.getUTCFullYear(), congeDate.getUTCMonth(), congeDate.getUTCDate() + 1, 0, 0, 0)).toISOString();
 
   const formationCheck = await db.execute({
-    sql: "SELECT id FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
+    sql: "SELECT id, time FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
     args: [dayStart, dayEnd, userId],
   });
   if (formationCheck.rows.length > 0) {

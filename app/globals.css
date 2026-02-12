@@ -1,3 +1,9 @@
+/* PrimeReact CSS */
+@import "primereact/resources/themes/lara-light-blue/theme.css";
+@import "primereact/resources/primereact.min.css";
+@import "primeicons/primeicons.css";
+
+/* Tailwind utilities for layout */
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -15,7 +21,7 @@
 }
 
 .dark {
-  --background: #0a0a0a;
+  --background: #1a1a2e;
   --foreground: #ededed;
 }
 
@@ -23,4 +29,123 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* PrimeReact dark mode overrides */
+.dark .p-component {
+  color: #ededed;
+}
+
+.dark .p-dialog {
+  background: #1e1e2f;
+  border-color: #2a2a3e;
+}
+
+.dark .p-dialog .p-dialog-header {
+  background: #1e1e2f;
+  color: #ededed;
+}
+
+.dark .p-dialog .p-dialog-content {
+  background: #1e1e2f;
+  color: #ededed;
+}
+
+.dark .p-dialog .p-dialog-footer {
+  background: #1e1e2f;
+}
+
+.dark .p-inputtext {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #ededed;
+}
+
+.dark .p-button.p-button-secondary {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #ededed;
+}
+
+.dark .p-menubar {
+  background: #1a1a2e;
+  border-color: #2a2a3e;
+}
+
+.dark .p-menubar .p-menuitem-link .p-menuitem-text {
+  color: #a1a1b5;
+}
+
+.dark .p-menubar .p-menuitem-link:hover .p-menuitem-text {
+  color: #ededed;
+}
+
+.dark .p-card {
+  background: #1e1e2f;
+  border: 1px solid #2a2a3e;
+  color: #ededed;
+}
+
+.dark .p-selectbutton .p-button {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #a1a1b5;
+}
+
+.dark .p-selectbutton .p-button.p-highlight {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.dark .p-dropdown {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #ededed;
+}
+
+.dark .p-dropdown-panel {
+  background: #2a2a3e;
+}
+
+.dark .p-dropdown-items .p-dropdown-item {
+  color: #ededed;
+}
+
+.dark .p-tag {
+  color: #fff;
+}
+
+.dark .p-checkbox .p-checkbox-box {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+}
+
+.dark .p-fileupload {
+  background: #1e1e2f;
+  border-color: #2a2a3e;
+}
+
+.dark .p-calendar input {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #ededed;
+}
+
+.dark .p-tabview .p-tabview-nav {
+  background: #1e1e2f;
+  border-color: #2a2a3e;
+}
+
+.dark .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  background: #1e1e2f;
+  color: #a1a1b5;
+}
+
+.dark .p-tabview .p-tabview-panels {
+  background: #1e1e2f;
+  color: #ededed;
+}
+
+.dark .p-message {
+  border-color: #3a3a4e;
 }

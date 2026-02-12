@@ -34,6 +34,7 @@ async function migrate() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
       label TEXT NOT NULL DEFAULT 'FORMATION',
+      time REAL NOT NULL DEFAULT 1,
       userId INTEGER,
       FOREIGN KEY (userId) REFERENCES User(id),
       UNIQUE(date, userId)

@@ -58,12 +58,12 @@ export async function POST(request: NextRequest) {
   const dayEnd = new Date(Date.UTC(entryDate.getUTCFullYear(), entryDate.getUTCMonth(), entryDate.getUTCDate() + 1, 0, 0, 0)).toISOString();
 
   const formation = await db.execute({
-    sql: "SELECT id FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
+    sql: "SELECT id, time FROM FormationDay WHERE date >= ? AND date < ? AND userId = ? LIMIT 1",
     args: [dayStart, dayEnd, userId],
   });
-  if (formation.rows.length > 0) {
+  if (formation.rows.length > 0 && (formation.rows[0].time as number) >= 1) {
     return NextResponse.json(
-      { error: "Impossible d'ajouter une entrée sur un jour de formation" },
+      { error: "Impossible d'ajouter une entrée sur un jour de formation complet" },
       { status: 400 }
     );
   }
