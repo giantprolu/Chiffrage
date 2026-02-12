@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   const { searchParams } = new URL(request.url);
   const month = parseInt(searchParams.get("month") || "");
   const year = parseInt(searchParams.get("year") || "");
@@ -19,6 +22,7 @@ export async function GET(request: NextRequest) {
   const days = await prisma.formationDay.findMany({
     where: {
       date: { gte: startDate, lt: endDate },
+      userId,
     },
     orderBy: { date: "asc" },
   });

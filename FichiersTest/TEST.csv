@@ -1,0 +1,140 @@
+Date,Client,Ticket,Commentaires,Temps,Type
+01/03/2026,Interne,CS-456,Support utilisateur,0.5,Dev
+02/03/2026,TI,INC-789,Réunion d'équipe,0.5,Correctif
+03/03/2026,Unhaj,,Correction anomalie module Y,0.25,Correctif
+03/03/2026,Interne,TK-123,Formation nouvel outil,1.0,Correctif
+04/03/2026,TI,CS-456,Correction anomalie module Y,0.5,Réunion
+05/03/2026,Magellan,INC-789,Analyse besoin client,0.5,Formation
+06/03/2026,TI,TK-123,Développement feature X,0.5,
+06/03/2026,Magellan,,Support utilisateur,1.0,Formation
+07/03/2026,Magellan,INC-789,Développement feature X,1.0,Formation
+07/03/2026,Beaumanoir,DEV-321,Analyse besoin client,0.25,Réunion
+08/03/2026,Beaumanoir,,Correction anomalie module Y,0.5,Support
+08/03/2026,Beaumanoir,TK-123,Support utilisateur,0.25,Dev
+09/03/2026,Unhaj,DEV-321,Correction anomalie module Y,0.25,
+09/03/2026,Interne,CS-456,Analyse besoin client,0.25,Dev
+10/03/2026,Magellan,TK-123,Développement feature X,1.0,Réunion
+11/03/2026,Beaumanoir,,Analyse besoin client,0.25,Support
+11/03/2026,Beaumanoir,,Développement feature X,1.0,Correctif
+12/03/2026,Beaumanoir,INC-789,Support utilisateur,1.0,
+13/03/2026,Magellan,INC-789,Support utilisateur,0.5,Réunion
+13/03/2026,Magellan,INC-789,Réunion d'équipe,0.5,Dev
+14/03/2026,TI,TK-123,Analyse besoin client,0.25,Réunion
+15/03/2026,Interne,,Développement feature X,0.5,Réunion
+15/03/2026,Interne,INC-789,Support utilisateur,1.0,Formation
+16/03/2026,Beaumanoir,INC-789,Développement feature X,0.5,Correctif
+17/03/2026,Interne,INC-789,Réunion d'équipe,1.0,Formation
+18/03/2026,Magellan,DEV-321,Réunion d'équipe,1.0,Correctif
+19/03/2026,Magellan,INC-789,Formation nouvel outil,0.25,Formation
+20/03/2026,TI,INC-789,Réunion d'équipe,1.0,Correctif
+20/03/2026,Beaumanoir,INC-789,Formation nouvel outil,0.25,Correctif
+21/03/2026,Beaumanoir,INC-789,Réunion d'équipe,0.5,
+21/03/2026,Interne,CS-456,Développement feature X,0.25,Correctif
+22/03/2026,TI,DEV-321,Développement feature X,0.25,Support
+22/03/2026,Unhaj,TK-123,Analyse besoin client,0.25,Correctif
+23/03/2026,TI,,Formation nouvel outil,1.0,
+24/03/2026,Magellan,TK-123,Développement feature X,0.25,Dev
+25/03/2026,Beaumanoir,DEV-321,Support utilisateur,0.25,Formation
+26/03/2026,Interne,DEV-321,Développement feature X,0.25,Dev
+27/03/2026,Unhaj,CS-456,Formation nouvel outil,0.25,Formation
+27/03/2026,Magellan,TK-123,Réunion d'équipe,1.0,Réunion
+28/03/2026,Unhaj,INC-789,Correction anomalie module Y,0.5,Correctif
+28/03/2026,Unhaj,INC-789,Support utilisateur,0.25,Réunion
+29/03/2026,Beaumanoir,TK-123,Développement feature X,0.5,Correctif
+30/03/2026,Interne,DEV-321,Développement feature X,0.5,Réunion
+30/03/2026,Interne,INC-789,Formation nouvel outil,0.5,Support
+31/03/2026,Magellan,,Analyse besoin client,0.5,Formation
+31/03/2026,Magellan,INC-789,Formation nouvel outil,1.0,Réunion
+01/04/2026,TI,CS-456,Formation nouvel outil,0.5,
+02/04/2026,Interne,CS-456,Formation nouvel outil,0.25,
+02/04/2026,Interne,TK-123,Correction anomalie module Y,1.0,Correctif
+03/04/2026,Beaumanoir,CS-456,Développement feature X,0.25,Support
+04/04/2026,TI,DEV-321,Réunion d'équipe,0.5,Réunion
+05/04/2026,Unhaj,INC-789,Formation nouvel outil,0.25,Réunion
+06/04/2026,Unhaj,TK-123,Formation nouvel outil,0.25,Support
+06/04/2026,Interne,DEV-321,Formation nouvel outil,0.25,Dev
+07/04/2026,Unhaj,TK-123,Analyse besoin client,0.25,Réunion
+08/04/2026,Beaumanoir,INC-789,Support utilisateur,0.25,Dev
+09/04/2026,Magellan,,Analyse besoin client,1.0,
+09/04/2026,Unhaj,,Formation nouvel outil,1.0,Support
+10/04/2026,TI,,Correction anomalie module Y,1.0,Correctif
+10/04/2026,Interne,DEV-321,Support utilisateur,0.5,Dev
+11/04/2026,Interne,INC-789,Support utilisateur,0.5,Support
+11/04/2026,Beaumanoir,DEV-321,Réunion d'équipe,0.5,Formation
+12/04/2026,Beaumanoir,,Support utilisateur,0.25,Réunion
+12/04/2026,Interne,TK-123,Support utilisateur,0.5,Réunion
+13/04/2026,TI,,Analyse besoin client,1.0,Correctif
+14/04/2026,Interne,DEV-321,Réunion d'équipe,0.25,Dev
+15/04/2026,TI,CS-456,Analyse besoin client,0.25,Dev
+15/04/2026,Magellan,,Support utilisateur,1.0,
+16/04/2026,TI,TK-123,Support utilisateur,1.0,Dev
+17/04/2026,Beaumanoir,INC-789,Correction anomalie module Y,0.25,Support
+18/04/2026,Interne,TK-123,Support utilisateur,0.25,Correctif
+18/04/2026,Unhaj,,Formation nouvel outil,0.5,
+19/04/2026,TI,INC-789,Support utilisateur,0.25,Correctif
+19/04/2026,Unhaj,,Réunion d'équipe,0.5,Correctif
+20/04/2026,Magellan,INC-789,Analyse besoin client,0.5,
+20/04/2026,TI,TK-123,Formation nouvel outil,0.25,Support
+21/04/2026,Interne,DEV-321,Analyse besoin client,0.5,Correctif
+22/04/2026,Interne,INC-789,Analyse besoin client,0.5,Réunion
+23/04/2026,TI,DEV-321,Réunion d'équipe,0.25,
+23/04/2026,Magellan,INC-789,Réunion d'équipe,0.25,Dev
+24/04/2026,Interne,DEV-321,Formation nouvel outil,1.0,Support
+24/04/2026,Interne,,Support utilisateur,0.25,Support
+25/04/2026,Beaumanoir,,Réunion d'équipe,1.0,Réunion
+25/04/2026,Unhaj,,Support utilisateur,1.0,Dev
+26/04/2026,Unhaj,DEV-321,Support utilisateur,0.5,Dev
+27/04/2026,Interne,INC-789,Analyse besoin client,0.25,Support
+27/04/2026,Beaumanoir,,Correction anomalie module Y,0.5,Correctif
+28/04/2026,Interne,,Analyse besoin client,1.0,Support
+28/04/2026,Magellan,INC-789,Réunion d'équipe,0.25,
+29/04/2026,Unhaj,DEV-321,Formation nouvel outil,0.25,Réunion
+29/04/2026,Unhaj,TK-123,Support utilisateur,0.5,Dev
+30/04/2026,Interne,DEV-321,Correction anomalie module Y,1.0,Support
+30/04/2026,Interne,DEV-321,Correction anomalie module Y,1.0,Formation
+01/05/2026,TI,INC-789,Analyse besoin client,0.25,Réunion
+02/05/2026,Beaumanoir,DEV-321,Correction anomalie module Y,0.25,Formation
+03/05/2026,TI,INC-789,Réunion d'équipe,0.5,Support
+04/05/2026,Unhaj,,Réunion d'équipe,0.5,Dev
+04/05/2026,Interne,,Analyse besoin client,0.25,
+05/05/2026,Interne,,Développement feature X,0.5,Dev
+06/05/2026,Beaumanoir,DEV-321,Formation nouvel outil,1.0,Formation
+06/05/2026,Interne,TK-123,Support utilisateur,1.0,Dev
+07/05/2026,Beaumanoir,,Formation nouvel outil,0.25,Réunion
+07/05/2026,Unhaj,TK-123,Analyse besoin client,0.25,Dev
+08/05/2026,Interne,INC-789,Analyse besoin client,0.5,Dev
+09/05/2026,Unhaj,CS-456,Réunion d'équipe,1.0,Réunion
+09/05/2026,TI,CS-456,Développement feature X,1.0,Support
+10/05/2026,Beaumanoir,TK-123,Formation nouvel outil,0.5,
+10/05/2026,Magellan,,Correction anomalie module Y,0.5,Dev
+11/05/2026,Unhaj,TK-123,Formation nouvel outil,1.0,Correctif
+12/05/2026,Beaumanoir,,Analyse besoin client,0.5,Dev
+12/05/2026,Interne,,Support utilisateur,0.5,
+13/05/2026,Beaumanoir,,Développement feature X,1.0,Formation
+14/05/2026,TI,,Formation nouvel outil,0.25,Formation
+15/05/2026,Interne,CS-456,Développement feature X,0.5,Réunion
+15/05/2026,Unhaj,DEV-321,Développement feature X,0.25,Formation
+16/05/2026,Beaumanoir,TK-123,Support utilisateur,0.5,Correctif
+16/05/2026,TI,DEV-321,Analyse besoin client,0.5,Correctif
+17/05/2026,Unhaj,TK-123,Réunion d'équipe,0.5,Formation
+17/05/2026,TI,CS-456,Formation nouvel outil,0.5,Correctif
+18/05/2026,TI,,Analyse besoin client,1.0,Correctif
+18/05/2026,Beaumanoir,DEV-321,Support utilisateur,0.5,Support
+19/05/2026,Beaumanoir,INC-789,Analyse besoin client,0.25,
+19/05/2026,Beaumanoir,TK-123,Correction anomalie module Y,1.0,Formation
+20/05/2026,Beaumanoir,TK-123,Correction anomalie module Y,1.0,
+21/05/2026,Magellan,TK-123,Formation nouvel outil,0.5,Correctif
+22/05/2026,Beaumanoir,,Support utilisateur,0.25,
+23/05/2026,Magellan,DEV-321,Support utilisateur,0.25,
+23/05/2026,Beaumanoir,DEV-321,Formation nouvel outil,0.5,Réunion
+24/05/2026,TI,INC-789,Développement feature X,1.0,Dev
+24/05/2026,TI,,Support utilisateur,1.0,Formation
+25/05/2026,Unhaj,INC-789,Formation nouvel outil,1.0,Dev
+26/05/2026,TI,,Réunion d'équipe,0.25,Formation
+27/05/2026,TI,INC-789,Formation nouvel outil,1.0,Support
+28/05/2026,Beaumanoir,CS-456,Correction anomalie module Y,0.5,Réunion
+28/05/2026,TI,,Formation nouvel outil,0.25,Dev
+29/05/2026,Beaumanoir,INC-789,Support utilisateur,0.25,Formation
+29/05/2026,Unhaj,DEV-321,Formation nouvel outil,1.0,Réunion
+30/05/2026,Magellan,INC-789,Formation nouvel outil,0.5,Dev
+31/05/2026,Magellan,CS-456,Formation nouvel outil,1.0,

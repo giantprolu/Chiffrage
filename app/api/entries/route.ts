@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const month = parseInt(searchParams.get("month") || "");
   const year = parseInt(searchParams.get("year") || "");
@@ -19,6 +23,7 @@ export async function GET(request: NextRequest) {
   const entries = await prisma.entry.findMany({
     where: {
       date: { gte: startDate, lt: endDate },
+      userId,
     },
     orderBy: { date: "asc" },
   });
@@ -27,6 +32,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const body = await request.json();
   const { date, client, ticket, comment, time, type } = body;
 
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   // Block entries on congé days (full day only)
   const congeDay = await prisma.congeDay.findFirst({
-    where: { date: { gte: dayStart, lt: dayEnd } },
+    where: { date: { gte: dayStart, lt: dayEnd }, userId },
   });
   if (congeDay && congeDay.time >= 1) {
     return NextResponse.json(
@@ -81,6 +89,7 @@ export async function POST(request: NextRequest) {
       comment,
       time: parseFloat(time),
       type: type || null,
+      userId,
     },
   });
 

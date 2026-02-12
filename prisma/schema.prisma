@@ -4,7 +4,17 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  entries       Entry[]
+  congeDays     CongeDay[]
+  formationDays FormationDay[]
 }
 
 model Entry {
@@ -15,19 +25,27 @@ model Entry {
   comment   String
   time      Float
   type      String?
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model FormationDay {
-  id    Int      @id @default(autoincrement())
-  date  DateTime @unique
-  label String   @default("FORMATION")
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  label  String   @default("FORMATION")
+  userId Int?
+  user   User?    @relation(fields: [userId], references: [id])
+
+  @@unique([date, userId])
 }
 
 model CongeDay {
-  id    Int      @id @default(autoincrement())
-  date  DateTime @unique
-  label String   @default("CONGÉ")
-  time  Float    @default(1)
+  id     Int      @id @default(autoincrement())
+  date   DateTime
+  label  String   @default("CONGÉ")
+  time   Float    @default(1)
+  userId Int?
+  user   User?    @relation(fields: [userId], references: [id])
 }

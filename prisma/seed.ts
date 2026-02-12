@@ -76,13 +76,23 @@ const formationDays: FormationDayData[] = [
 ];
 
 async function main() {
-  console.log("Seeding formation days...");
+  // Find the first user to assign formation days to
+  const firstUser = await prisma.user.findFirst({ orderBy: { id: "asc" } });
+
+  if (!firstUser) {
+    console.log("No user found. Skipping formation days seed (formations are per-user).");
+    return;
+  }
+
+  console.log(`Seeding formation days for user "${firstUser.username}" (id: ${firstUser.id})...`);
 
   for (const day of formationDays) {
     await prisma.formationDay.upsert({
-      where: { date: day.date },
+      where: {
+        date_userId: { date: day.date, userId: firstUser.id },
+      },
       update: { label: day.label },
-      create: day,
+      create: { ...day, userId: firstUser.id },
     });
   }
 

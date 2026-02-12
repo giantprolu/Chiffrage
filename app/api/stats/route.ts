@@ -1,15 +1,19 @@
 import { prisma } from "@/lib/prisma";
+import { getSessionUserId } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
 
   const where =
     from && to
-      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") } }
-      : {};
+      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") }, userId }
+      : { userId };
 
   const entries = await prisma.entry.findMany({
     where,
@@ -36,8 +40,8 @@ export async function GET(request: NextRequest) {
 
   const formationWhere =
     from && to
-      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") } }
-      : {};
+      ? { date: { gte: new Date(from + "T00:00:00Z"), lte: new Date(to + "T23:59:59Z") }, userId }
+      : { userId };
   const formationDays = await prisma.formationDay.findMany({
     where: formationWhere,
   });
