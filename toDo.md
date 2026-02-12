@@ -1,0 +1,7 @@
+- [ ] Aucun bloc de formation ou travail le weekend et si il y en a un, ils doivent être enlevés
+- [ ] Ajouter une section "Journées de formation" dans le calendrier, avec un style différent pour les différencier des journées de travail
+- [ ] Ajouter l'option de congés dans le calendrier, avec un style différent pour les différencier des journées de travail et de formation
+- [ ]pouvoir selectionner plusieurs jour d"un coup et les éditer en ajoutant modifiant ou supprimant des entrées
+- [ ] si je cliquer sur copier alors je change d'état et je peux annuler l'option  de copier 
+- [ ] rendre les boutons de copier et coller plu visible c'est un site only desktop
+- [ ] revoir l'ux/UI des boutons, labels, card, formulaire, etc... pour les rendre plus clair et plus agréable à utiliser

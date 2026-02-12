@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Entry {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  client    String
+  ticket    String?
+  comment   String
+  time      Float
+  type      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FormationDay {
+  id    Int      @id @default(autoincrement())
+  date  DateTime @unique
+  label String   @default("FORMATION")
+}
+
+model CongeDay {
+  id    Int      @id @default(autoincrement())
+  date  DateTime @unique
+  label String   @default("CONGÉ")
+  time  Float    @default(1)
+}
