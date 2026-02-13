@@ -14,8 +14,8 @@ const MONTH_NAMES = [
 ];
 
 const modeOptions = [
-  { label: "Par mois", value: "month", icon: "pi pi-calendar" },
-  { label: "Période personnalisée", value: "custom", icon: "pi pi-calendar-plus" },
+  { label: "Par mois", value: "month" },
+  { label: "Période personnalisée", value: "custom" },
 ];
 
 const monthOptions = MONTH_NAMES.map((name, i) => ({
@@ -80,82 +80,98 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: "40rem" }}>
-      <h1 className="text-lg font-bold mb-4">Export</h1>
+    <div className="export-page animate-fade-in">
+      <div className="export-header">
+        <div className="export-icon-wrap">
+          <i className="pi pi-download" />
+        </div>
+        <div>
+          <h1 className="export-title">Export des données</h1>
+          <p className="export-subtitle">Téléchargez vos données de chiffrage au format CSV ou Excel</p>
+        </div>
+      </div>
 
-      <Card className="shadow-sm animate-fade-in" style={{ borderRadius: "0.75rem" }}>
-        <div className="space-y-5">
-          <SelectButton
-            value={mode}
-            onChange={(e) => setMode(e.value)}
-            options={modeOptions}
-            optionLabel="label"
-            optionValue="value"
-          />
+      <Card className="export-card">
+        <div className="export-stack">
+          <div className="export-mode-section">
+            <label className="form-label"><i className="pi pi-sliders-h" style={{ fontSize: 10 }} /> Mode de sélection</label>
+            <SelectButton
+              value={mode}
+              onChange={(e) => setMode(e.value)}
+              options={modeOptions}
+              optionLabel="label"
+              optionValue="value"
+              className="export-mode-toggle"
+            />
+          </div>
 
           {mode === "month" ? (
-            <div className="flex gap-4 items-end flex-wrap">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-color-secondary">Mois</label>
+            <div className="export-period-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Mois</label>
                 <Dropdown
                   value={month}
                   onChange={(e) => setMonth(e.value)}
                   options={monthOptions}
                   optionLabel="label"
                   optionValue="value"
-                  className="w-48"
+                  className="w-full"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-color-secondary">Année</label>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Année</label>
                 <InputNumber
                   value={year}
                   onValueChange={(e) => setYear(e.value ?? now.getFullYear())}
                   useGrouping={false}
-                  className="w-28"
+                  className="w-full"
                 />
               </div>
             </div>
           ) : (
-            <div className="flex gap-4 items-end flex-wrap">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-color-secondary">Du</label>
+            <div className="export-period-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Du</label>
                 <Calendar
                   value={fromDate}
                   onChange={(e) => setFromDate(e.value as Date | null)}
                   dateFormat="dd/mm/yy"
                   showIcon
-                  className="w-48"
+                  className="w-full"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-color-secondary">Au</label>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Au</label>
                 <Calendar
                   value={toDate}
                   onChange={(e) => setToDate(e.value as Date | null)}
                   dateFormat="dd/mm/yy"
                   showIcon
-                  className="w-48"
+                  className="w-full"
                 />
               </div>
             </div>
           )}
 
-          <div className="flex gap-3 pt-3">
-            <Button
-              label="Export CSV"
-              icon="pi pi-file"
-              severity="info"
-              onClick={() => handleExport("csv")}
-              className="flex-1"
-            />
-            <Button
-              label="Export Excel"
-              icon="pi pi-file-excel"
-              severity="success"
-              onClick={() => handleExport("excel")}
-              className="flex-1"
-            />
+          <div className="export-buttons">
+            <button className="export-btn csv" onClick={() => handleExport("csv")}>
+              <div className="export-btn-icon csv">
+                <i className="pi pi-file" />
+              </div>
+              <div className="export-btn-text">
+                <span className="export-btn-label">Export CSV</span>
+                <span className="export-btn-desc">Fichier tableur simple</span>
+              </div>
+            </button>
+            <button className="export-btn excel" onClick={() => handleExport("excel")}>
+              <div className="export-btn-icon excel">
+                <i className="pi pi-file-excel" />
+              </div>
+              <div className="export-btn-text">
+                <span className="export-btn-label">Export Excel</span>
+                <span className="export-btn-desc">Fichier .xlsx formaté</span>
+              </div>
+            </button>
           </div>
         </div>
       </Card>

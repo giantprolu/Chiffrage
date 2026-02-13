@@ -32,17 +32,17 @@ export default function MonthNav({ month, year, onChange }: MonthNavProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <h2 className="text-lg font-bold">
+    <div className="month-nav">
+      <h2 className="month-title">
         {MONTH_NAMES[month - 1]}{" "}
-        <span className="font-normal text-gray-400 dark:text-slate-500">{year}</span>
+        <span className="month-year">{year}</span>
       </h2>
-      <div className="flex items-center gap-1 ml-2">
+      <div className="month-arrows">
         <Button icon="pi pi-chevron-left" onClick={prev} text size="small" severity="secondary" rounded aria-label="Mois précédent" />
         <Button icon="pi pi-chevron-right" onClick={next} text size="small" severity="secondary" rounded aria-label="Mois suivant" />
       </div>
       {!isCurrentMonth && (
-        <Button label="Aujourd'hui" size="small" text severity="info" onClick={goToToday} className="ml-1" />
+        <Button label="Aujourd'hui" size="small" text severity="info" onClick={goToToday} />
       )}
     </div>
   );

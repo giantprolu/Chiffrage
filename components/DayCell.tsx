@@ -1,30 +1,9 @@
 "use client";
 
 import { Tooltip } from "primereact/tooltip";
+import type { Entry, FormationDay, CongeDay } from "@/lib/types";
 
-export interface Entry {
-  id: number;
-  date: string;
-  client: string;
-  ticket: string | null;
-  comment: string;
-  time: number;
-  type: string | null;
-}
-
-export interface FormationDay {
-  id: number;
-  date: string;
-  label: string;
-  time: number;
-}
-
-export interface CongeDay {
-  id: number;
-  date: string;
-  label: string;
-  time: number;
-}
+export type { Entry, FormationDay, CongeDay };
 
 type DayStatus = "normal" | "weekend" | "formation" | "conge" | "incomplete" | "empty" | "full";
 
@@ -52,7 +31,7 @@ export default function DayCell({
   onClick,
 }: DayCellProps) {
   if (day === null) {
-    return <div className="min-h-[100px] md:min-h-[110px]" />;
+    return <div className="day-cell empty" />;
   }
 
   const totalTime = entries.reduce((sum, e) => sum + e.time, 0);
@@ -79,40 +58,33 @@ export default function DayCell({
 
   const interactive = !isWeekend;
 
-  // Left accent color
-  const accentColor: Record<DayStatus, string> = {
-    weekend: "",
-    formation: "border-l-red-400",
-    conge: "border-l-orange-400",
-    full: "border-l-emerald-400",
-    incomplete: "border-l-amber-400",
-    empty: "",
-    normal: "",
+  const accentClass: Record<string, string> = {
+    formation: "accent-red",
+    conge: "accent-orange",
+    full: "accent-green",
+    incomplete: "accent-amber",
   };
 
-  const bgColor: Record<DayStatus, string> = {
-    weekend: "bg-gray-50/50 dark:bg-slate-800/20",
-    formation: "bg-white dark:bg-slate-900/60",
-    conge: "bg-white dark:bg-slate-900/60",
-    full: "bg-white dark:bg-slate-900/60",
-    incomplete: "bg-white dark:bg-slate-900/60",
-    empty: "bg-white dark:bg-slate-900/60",
-    normal: "bg-white dark:bg-slate-900/60",
-  };
+  const cellClasses = [
+    "day-cell",
+    isWeekend ? "weekend" : "",
+    accentClass[status] || "",
+    isSelected ? "selected" : "",
+    isToday && !isSelected ? "today" : "",
+  ].filter(Boolean).join(" ");
 
-  const accent = accentColor[status];
   const cellId = `day-cell-${day}`;
 
   return (
     <>
       {entries.length > 0 && (
         <Tooltip target={`#${cellId}`} position="top" mouseTrack mouseTrackTop={10}>
-          <div className="text-xs space-y-1 max-w-[220px]">
+          <div style={{ fontSize: 12, maxWidth: 220 }}>
             {entries.map(e => (
-              <div key={e.id}>
+              <div key={e.id} style={{ marginBottom: 4 }}>
                 <strong>{e.client}</strong> ({e.time}j)
                 <br />
-                <span className="opacity-70">{e.comment}</span>
+                <span style={{ opacity: 0.7 }}>{e.comment}</span>
               </div>
             ))}
           </div>
@@ -121,84 +93,58 @@ export default function DayCell({
       <div
         id={cellId}
         onClick={interactive ? onClick : undefined}
-        className={[
-          bgColor[status],
-          "border border-gray-100 dark:border-[#1e2d44] rounded-lg p-1.5 flex flex-col transition-all duration-100 select-none",
-          accent ? `border-l-[3px] ${accent}` : "",
-          "min-h-[100px] md:min-h-[110px]",
-          interactive ? "cursor-pointer hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20" : "cursor-default opacity-40",
-          isSelected ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-[#0b1120] shadow-md" : "",
-          isToday && !isSelected ? "ring-1 ring-blue-400/60 dark:ring-blue-500/40" : "",
-        ].filter(Boolean).join(" ")}
+        className={cellClasses}
+        style={!interactive ? { cursor: "default" } : undefined}
       >
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-0.5">
-          <span className={`text-xs font-semibold leading-none ${
-            isToday
-              ? "text-white bg-blue-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
-              : isWeekend
-              ? "text-gray-300 dark:text-slate-600"
-              : "text-gray-500 dark:text-slate-400"
-          }`}>
+        <div className="day-header">
+          <span className={`day-number ${isToday ? "today-badge" : ""}`}>
             {day}
           </span>
-
           {!isBlocked && totalTime > 0 && (
-            <span className={`text-[10px] font-bold ${
-              status === "full" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
-            }`}>
+            <span className={`day-time ${status === "full" ? "full" : "partial"}`}>
               {totalTime}j
             </span>
           )}
         </div>
 
-        {/* Formation badge */}
         {isFormation && (
-          <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 truncate leading-tight">
-            <i className="pi pi-book mr-0.5" style={{ fontSize: "8px" }} />
+          <span className="day-badge formation">
+            <i className="pi pi-book" style={{ fontSize: 8, marginRight: 2 }} />
             {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
           </span>
         )}
 
-        {/* Congé badge */}
         {isConge && (
-          <span className="text-[9px] font-semibold text-orange-600 dark:text-orange-400 truncate leading-tight">
-            <i className="pi pi-calendar-minus mr-0.5" style={{ fontSize: "8px" }} />
+          <span className="day-badge conge">
+            <i className="pi pi-calendar-minus" style={{ fontSize: 8, marginRight: 2 }} />
             {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
           </span>
         )}
 
-        {/* Entry list */}
         {(!isBlocked || isHalfConge || isHalfFormation) && entries.length > 0 && (
-          <div className="flex-1 mt-1 space-y-0.5 overflow-hidden">
+          <div className="day-entries">
             {entries.slice(0, 2).map((e) => (
-              <div key={e.id} className="text-[10px] leading-tight truncate text-gray-600 dark:text-slate-300">
-                <span className="font-medium">{e.client}</span>
-                <span className="text-gray-400 dark:text-slate-500"> {e.time}j</span>
+              <div key={e.id} className="day-entry-line">
+                <span className="client">{e.client}</span>
+                <span className="time"> {e.time}j</span>
               </div>
             ))}
             {entries.length > 2 && (
-              <span className="text-[9px] text-gray-400 dark:text-slate-500">
-                +{entries.length - 2}
-              </span>
+              <span className="day-more">+{entries.length - 2}</span>
             )}
           </div>
         )}
 
-        {/* Empty state */}
         {status === "empty" && (
-          <div className="flex-1 flex items-center justify-center">
-            <i className="pi pi-plus text-gray-200 dark:text-slate-700 text-xs" />
+          <div className="day-empty-icon">
+            <i className="pi pi-plus" />
           </div>
         )}
 
-        {/* Copy mode indicator */}
         {isCopyMode && !isBlocked && totalTime < 1 && (
-          <div className="mt-auto">
-            <span className="text-[9px] font-medium text-blue-500 dark:text-blue-400 animate-pulse">
-              <i className="pi pi-clipboard mr-0.5" style={{ fontSize: "8px" }} />
-              Coller
-            </span>
+          <div className="day-paste">
+            <i className="pi pi-clipboard" style={{ fontSize: 8, marginRight: 2 }} />
+            Coller
           </div>
         )}
       </div>
