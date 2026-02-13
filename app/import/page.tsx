@@ -76,19 +76,9 @@ export default function ImportPage() {
 
   return (
     <div className="page-container" style={{ maxWidth: "36rem" }}>
-      <div className="page-header">
-        <div className="page-icon" style={{ backgroundColor: "#8b5cf6" }}>
-          <i className="pi pi-upload" />
-        </div>
-        <div>
-          <h1>Importer un emploi du temps</h1>
-          <p className="page-subtitle">
-            Importez vos données depuis un fichier Excel (.xlsx) ou CSV
-          </p>
-        </div>
-      </div>
+      <h1 className="text-lg font-bold mb-4">Importer un emploi du temps</h1>
 
-      <Card className="shadow-sm animate-fade-in-up" style={{ borderRadius: "0.75rem" }}>
+      <Card className="shadow-sm animate-fade-in" style={{ borderRadius: "0.75rem" }}>
         <div className="space-y-5">
           {/* Format info */}
           <Message

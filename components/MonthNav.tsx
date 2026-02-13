@@ -8,7 +8,7 @@ const MONTH_NAMES = [
 ];
 
 interface MonthNavProps {
-  month: number; // 1-12
+  month: number;
   year: number;
   onChange: (month: number, year: number) => void;
 }
@@ -32,42 +32,18 @@ export default function MonthNav({ month, year, onChange }: MonthNavProps) {
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 mb-5">
-      <Button
-        icon="pi pi-chevron-left"
-        onClick={prev}
-        rounded
-        text
-        severity="secondary"
-        aria-label="Mois précédent"
-        className="shrink-0"
-      />
-      <div className="flex items-center gap-3">
-        <h2 className="text-xl font-bold tracking-tight">
-          {MONTH_NAMES[month - 1]}{" "}
-          <span className="text-color-secondary font-normal">{year}</span>
-        </h2>
-        {!isCurrentMonth && (
-          <Button
-            label="Aujourd'hui"
-            icon="pi pi-home"
-            size="small"
-            text
-            severity="info"
-            onClick={goToToday}
-            className="hidden sm:inline-flex"
-          />
-        )}
+    <div className="flex items-center gap-3 mb-4">
+      <h2 className="text-lg font-bold">
+        {MONTH_NAMES[month - 1]}{" "}
+        <span className="font-normal text-gray-400 dark:text-slate-500">{year}</span>
+      </h2>
+      <div className="flex items-center gap-1 ml-2">
+        <Button icon="pi pi-chevron-left" onClick={prev} text size="small" severity="secondary" rounded aria-label="Mois précédent" />
+        <Button icon="pi pi-chevron-right" onClick={next} text size="small" severity="secondary" rounded aria-label="Mois suivant" />
       </div>
-      <Button
-        icon="pi pi-chevron-right"
-        onClick={next}
-        rounded
-        text
-        severity="secondary"
-        aria-label="Mois suivant"
-        className="shrink-0"
-      />
+      {!isCurrentMonth && (
+        <Button label="Aujourd'hui" size="small" text severity="info" onClick={goToToday} className="ml-1" />
+      )}
     </div>
   );
 }

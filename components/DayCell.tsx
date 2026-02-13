@@ -1,8 +1,5 @@
 "use client";
 
-import { Tag } from "primereact/tag";
-import { Badge } from "primereact/badge";
-import { ProgressBar } from "primereact/progressbar";
 import { Tooltip } from "primereact/tooltip";
 
 export interface Entry {
@@ -55,7 +52,7 @@ export default function DayCell({
   onClick,
 }: DayCellProps) {
   if (day === null) {
-    return <div className="min-h-[110px] md:min-h-[120px]" />;
+    return <div className="min-h-[100px] md:min-h-[110px]" />;
   }
 
   const totalTime = entries.reduce((sum, e) => sum + e.time, 0);
@@ -68,9 +65,6 @@ export default function DayCell({
   const isFullFormation = isFormation && formationTime >= 1;
   const isHalfFormation = isFormation && formationTime < 1;
   const isBlocked = isWeekend || isFullFormation || isFullConge;
-
-  const totalFilled = totalTime + congeTime + formationTime;
-  const progressPercent = Math.min(totalFilled * 100, 100);
 
   let status: DayStatus = "normal";
   if (isWeekend) status = "weekend";
@@ -85,58 +79,38 @@ export default function DayCell({
 
   const interactive = !isWeekend;
 
-  // Color theme mapping
-  const statusStyles: Record<DayStatus, { bg: string; border: string; accent: string }> = {
-    weekend: {
-      bg: "bg-gray-50 dark:bg-slate-800/30",
-      border: "border-gray-100 dark:border-slate-700/50",
-      accent: "",
-    },
-    formation: {
-      bg: "bg-red-50/80 dark:bg-red-950/20",
-      border: "border-red-200/80 dark:border-red-800/40",
-      accent: "border-t-red-400",
-    },
-    conge: {
-      bg: "bg-orange-50/80 dark:bg-orange-950/20",
-      border: "border-orange-200/80 dark:border-orange-800/40",
-      accent: "border-t-orange-400",
-    },
-    full: {
-      bg: "bg-emerald-50/60 dark:bg-emerald-950/15",
-      border: "border-emerald-200/80 dark:border-emerald-800/40",
-      accent: "border-t-emerald-400",
-    },
-    incomplete: {
-      bg: "bg-amber-50/60 dark:bg-amber-950/15",
-      border: "border-amber-200/80 dark:border-amber-800/40",
-      accent: "border-t-amber-400",
-    },
-    empty: {
-      bg: "bg-white dark:bg-slate-900",
-      border: "border-gray-200 dark:border-slate-700",
-      accent: "",
-    },
-    normal: {
-      bg: "bg-white dark:bg-slate-900",
-      border: "border-gray-200 dark:border-slate-700",
-      accent: "",
-    },
+  // Left accent color
+  const accentColor: Record<DayStatus, string> = {
+    weekend: "",
+    formation: "border-l-red-400",
+    conge: "border-l-orange-400",
+    full: "border-l-emerald-400",
+    incomplete: "border-l-amber-400",
+    empty: "",
+    normal: "",
   };
 
-  const style = statusStyles[status];
+  const bgColor: Record<DayStatus, string> = {
+    weekend: "bg-gray-50/50 dark:bg-slate-800/20",
+    formation: "bg-white dark:bg-slate-900/60",
+    conge: "bg-white dark:bg-slate-900/60",
+    full: "bg-white dark:bg-slate-900/60",
+    incomplete: "bg-white dark:bg-slate-900/60",
+    empty: "bg-white dark:bg-slate-900/60",
+    normal: "bg-white dark:bg-slate-900/60",
+  };
 
+  const accent = accentColor[status];
   const cellId = `day-cell-${day}`;
-  const tooltipContent = entries.map(e => `${e.client}: ${e.time}j — ${e.comment}`).join("\n");
 
   return (
     <>
       {entries.length > 0 && (
         <Tooltip target={`#${cellId}`} position="top" mouseTrack mouseTrackTop={10}>
-          <div className="text-xs space-y-0.5 max-w-[200px]">
+          <div className="text-xs space-y-1 max-w-[220px]">
             {entries.map(e => (
               <div key={e.id}>
-                <span className="font-semibold">{e.client}</span> ({e.time}j)
+                <strong>{e.client}</strong> ({e.time}j)
                 <br />
                 <span className="opacity-70">{e.comment}</span>
               </div>
@@ -148,86 +122,64 @@ export default function DayCell({
         id={cellId}
         onClick={interactive ? onClick : undefined}
         className={[
-          style.bg,
-          style.border,
-          style.accent ? `border-t-2 ${style.accent}` : "",
-          "border rounded-xl p-2 flex flex-col transition-all duration-150 select-none",
-          "min-h-[110px] md:min-h-[120px]",
-          interactive ? "cursor-pointer hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:-translate-y-0.5" : "cursor-default opacity-50",
-          isSelected ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900 shadow-lg shadow-blue-500/10" : "",
-          isToday && !isSelected ? "ring-2 ring-blue-400/50 ring-offset-1 dark:ring-offset-slate-900" : "",
+          bgColor[status],
+          "border border-gray-100 dark:border-[#1e2d44] rounded-lg p-1.5 flex flex-col transition-all duration-100 select-none",
+          accent ? `border-l-[3px] ${accent}` : "",
+          "min-h-[100px] md:min-h-[110px]",
+          interactive ? "cursor-pointer hover:shadow-md hover:shadow-black/5 dark:hover:shadow-black/20" : "cursor-default opacity-40",
+          isSelected ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-[#0b1120] shadow-md" : "",
+          isToday && !isSelected ? "ring-1 ring-blue-400/60 dark:ring-blue-500/40" : "",
         ].filter(Boolean).join(" ")}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-1">
-          {isToday ? (
-            <Badge value={String(day)} severity="info" />
-          ) : (
-            <span className={`text-xs font-bold leading-none ${
-              isWeekend ? "text-gray-300 dark:text-slate-600" : "text-gray-500 dark:text-slate-400"
-            }`}>
-              {day}
-            </span>
-          )}
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-0.5">
+          <span className={`text-xs font-semibold leading-none ${
+            isToday
+              ? "text-white bg-blue-500 w-5 h-5 rounded-full flex items-center justify-center text-[10px]"
+              : isWeekend
+              ? "text-gray-300 dark:text-slate-600"
+              : "text-gray-500 dark:text-slate-400"
+          }`}>
+            {day}
+          </span>
 
-          {/* Time badge only when not blocked */}
           {!isBlocked && totalTime > 0 && (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-              status === "full"
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+            <span className={`text-[10px] font-bold ${
+              status === "full" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
             }`}>
               {totalTime}j
             </span>
           )}
         </div>
 
-        {/* Progress bar (non-weekend, non-blocked) */}
-        {!isWeekend && !isBlocked && totalTime > 0 && (
-          <div className="mb-1.5">
-            <ProgressBar
-              value={progressPercent}
-              showValue={false}
-              style={{ height: "3px", borderRadius: "2px" }}
-              color={status === "full" ? "#10b981" : "#f59e0b"}
-            />
-          </div>
-        )}
-
         {/* Formation badge */}
         {isFormation && (
-          <div className="mb-1">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">
-              <i className="pi pi-book" style={{ fontSize: "8px" }} />
-              {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
-            </span>
-          </div>
+          <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 truncate leading-tight">
+            <i className="pi pi-book mr-0.5" style={{ fontSize: "8px" }} />
+            {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
+          </span>
         )}
 
         {/* Congé badge */}
         {isConge && (
-          <div className="mb-1">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
-              <i className="pi pi-calendar-minus" style={{ fontSize: "8px" }} />
-              {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
-            </span>
-          </div>
+          <span className="text-[9px] font-semibold text-orange-600 dark:text-orange-400 truncate leading-tight">
+            <i className="pi pi-calendar-minus mr-0.5" style={{ fontSize: "8px" }} />
+            {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
+          </span>
         )}
 
         {/* Entry list */}
         {(!isBlocked || isHalfConge || isHalfFormation) && entries.length > 0 && (
-          <div className="flex-1 overflow-hidden space-y-0.5">
+          <div className="flex-1 mt-1 space-y-0.5 overflow-hidden">
             {entries.slice(0, 2).map((e) => (
-              <div
-                key={e.id}
-                className="text-[10px] leading-tight px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 truncate font-medium"
-              >
-                {e.client} — {e.time}j
+              <div key={e.id} className="text-[10px] leading-tight truncate text-gray-600 dark:text-slate-300">
+                <span className="font-medium">{e.client}</span>
+                <span className="text-gray-400 dark:text-slate-500"> {e.time}j</span>
               </div>
             ))}
             {entries.length > 2 && (
-              <span className="text-[9px] text-gray-400 dark:text-slate-500 pl-1 font-medium">
-                +{entries.length - 2} autre{entries.length - 2 > 1 ? "s" : ""}
+              <span className="text-[9px] text-gray-400 dark:text-slate-500">
+                +{entries.length - 2}
               </span>
             )}
           </div>
@@ -236,15 +188,15 @@ export default function DayCell({
         {/* Empty state */}
         {status === "empty" && (
           <div className="flex-1 flex items-center justify-center">
-            <i className="pi pi-plus text-gray-200 dark:text-slate-700 text-sm" />
+            <i className="pi pi-plus text-gray-200 dark:text-slate-700 text-xs" />
           </div>
         )}
 
         {/* Copy mode indicator */}
         {isCopyMode && !isBlocked && totalTime < 1 && (
           <div className="mt-auto">
-            <span className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 animate-pulse">
-              <i className="pi pi-clipboard" style={{ fontSize: "8px" }} />
+            <span className="text-[9px] font-medium text-blue-500 dark:text-blue-400 animate-pulse">
+              <i className="pi pi-clipboard mr-0.5" style={{ fontSize: "8px" }} />
               Coller
             </span>
           </div>

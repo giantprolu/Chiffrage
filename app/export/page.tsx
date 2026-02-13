@@ -80,18 +80,10 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: "42rem" }}>
-      <div className="page-header">
-        <div className="page-icon" style={{ backgroundColor: "#10b981" }}>
-          <i className="pi pi-download" />
-        </div>
-        <div>
-          <h1>Export</h1>
-          <p className="page-subtitle">Téléchargez vos données de chiffrage</p>
-        </div>
-      </div>
+    <div className="page-container" style={{ maxWidth: "40rem" }}>
+      <h1 className="text-lg font-bold mb-4">Export</h1>
 
-      <Card className="shadow-sm border animate-fade-in-up"  style={{ borderRadius: "0.75rem" }}>
+      <Card className="shadow-sm animate-fade-in" style={{ borderRadius: "0.75rem" }}>
         <div className="space-y-5">
           <SelectButton
             value={mode}
@@ -104,10 +96,7 @@ export default function ExportPage() {
           {mode === "month" ? (
             <div className="flex gap-4 items-end flex-wrap">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
-                  Mois
-                </label>
+                <label className="text-xs font-medium text-color-secondary">Mois</label>
                 <Dropdown
                   value={month}
                   onChange={(e) => setMonth(e.value)}
@@ -118,10 +107,7 @@ export default function ExportPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-hashtag mr-1" style={{ fontSize: "11px" }} />
-                  Année
-                </label>
+                <label className="text-xs font-medium text-color-secondary">Année</label>
                 <InputNumber
                   value={year}
                   onValueChange={(e) => setYear(e.value ?? now.getFullYear())}
@@ -133,10 +119,7 @@ export default function ExportPage() {
           ) : (
             <div className="flex gap-4 items-end flex-wrap">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
-                  Du
-                </label>
+                <label className="text-xs font-medium text-color-secondary">Du</label>
                 <Calendar
                   value={fromDate}
                   onChange={(e) => setFromDate(e.value as Date | null)}
@@ -146,10 +129,7 @@ export default function ExportPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
-                  Au
-                </label>
+                <label className="text-xs font-medium text-color-secondary">Au</label>
                 <Calendar
                   value={toDate}
                   onChange={(e) => setToDate(e.value as Date | null)}

@@ -10,7 +10,6 @@ import { SelectButton } from "primereact/selectbutton";
 import { Tag } from "primereact/tag";
 import { Message } from "primereact/message";
 import { Divider } from "primereact/divider";
-import { ProgressBar } from "primereact/progressbar";
 import type { Entry, FormationDay, CongeDay } from "./DayCell";
 
 interface EntryModalProps {
@@ -187,15 +186,15 @@ export default function EntryModal({
 
   const timeOptions = [
     ...(isMulti || remainingTime >= 0.5 || (editingEntry && editingEntry.time >= 0.5)
-      ? [{ label: "0.5 jour", value: 0.5 }]
+      ? [{ label: "0.5j", value: 0.5 }]
       : []),
     ...(isMulti || remainingTime >= 1 || (editingEntry && editingEntry.time >= 1)
-      ? [{ label: "1 jour", value: 1 }]
+      ? [{ label: "1j", value: 1 }]
       : []),
   ];
 
   const typeOptions = [
-    { label: "Aucun", value: "" },
+    { label: "—", value: "" },
     ...TYPES.map((t) => ({ label: t, value: t })),
   ];
 
@@ -203,44 +202,27 @@ export default function EntryModal({
     ? `${dates.length} jours sélectionnés`
     : formatDateLong(singleDate);
 
-  const progressValue = isMulti ? 0 : Math.min((usedTime + congeTime + formationTime) * 100, 100);
-  const progressColor = progressValue >= 100 ? "#10b981" : progressValue > 0 ? "#f59e0b" : "#e2e8f0";
+  const filledTime = usedTime + congeTime + formationTime;
 
   return (
     <Dialog
       header={
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500 text-white shrink-0">
-            <i className={isMulti ? "pi pi-calendar-plus" : "pi pi-calendar"} />
-          </div>
-          <div>
-            <div className="text-base font-bold capitalize">{header}</div>
-            {!isMulti && (
-              <div className="text-xs text-color-secondary font-normal mt-0.5">
-                {usedTime + congeTime + formationTime}j / 1j rempli
-              </div>
-            )}
-          </div>
+        <div>
+          <div className="text-base font-semibold capitalize">{header}</div>
+          {!isMulti && (
+            <div className="text-xs font-normal text-[var(--text-color-secondary,#64748b)] mt-0.5">
+              {filledTime}j / 1j rempli
+              {remainingTime > 0 && !isBlocked && <span> · {remainingTime}j disponible</span>}
+            </div>
+          )}
         </div>
       }
       visible={true}
-      style={{ width: "520px", maxHeight: "90vh" }}
+      style={{ width: "480px", maxHeight: "85vh" }}
       onHide={onClose}
       modal
-      closable
       className="overflow-y-auto"
     >
-      {/* Progress bar (single mode) */}
-      {!isMulti && (
-        <div className="mb-4">
-          <ProgressBar
-            value={progressValue}
-            showValue={false}
-            style={{ height: "6px", borderRadius: "3px" }}
-            color={progressColor}
-          />
-        </div>
-      )}
       {/* Multi date subtitle */}
       {isMulti && (
         <p className="text-xs text-color-secondary mb-3">
@@ -248,42 +230,22 @@ export default function EntryModal({
         </p>
       )}
 
-      {/* Formation status (single mode) */}
+      {/* Formation status */}
       {!isMulti && isFormation && (
         <Message
           severity="error"
           className="w-full mb-3"
           content={
             <div className="flex items-center justify-between w-full">
-              <span className="text-sm font-semibold">
-                Formation ({formationTime}j)
-              </span>
+              <span className="text-sm font-medium">Formation ({formationTime}j)</span>
               <div className="flex gap-1">
                 {isFullFormation && (
-                  <Button
-                    label="Passer à 0.5j"
-                    size="small"
-                    severity="danger"
-                    text
-                    onClick={() => onToggleFormation(singleDate, 0.5)}
-                  />
+                  <Button label="→ 0.5j" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 0.5)} />
                 )}
                 {isHalfFormation && (
-                  <Button
-                    label="Passer à 1j"
-                    size="small"
-                    severity="danger"
-                    text
-                    onClick={() => onToggleFormation(singleDate, 1)}
-                  />
+                  <Button label="→ 1j" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 1)} />
                 )}
-                <Button
-                  label="Retirer"
-                  size="small"
-                  severity="secondary"
-                  text
-                  onClick={() => onToggleFormation(singleDate)}
-                />
+                <Button label="Retirer" size="small" severity="secondary" text onClick={() => onToggleFormation(singleDate)} />
               </div>
             </div>
           }
@@ -296,147 +258,64 @@ export default function EntryModal({
           className="w-full mb-3"
           content={
             <div className="flex items-center justify-between w-full">
-              <span className="text-sm font-semibold">
-                Congé ({congeTime}j)
-              </span>
+              <span className="text-sm font-medium">Congé ({congeTime}j)</span>
               <div className="flex gap-1">
                 {isFullConge && (
-                  <Button
-                    label="Passer à 0.5j"
-                    size="small"
-                    severity="warning"
-                    text
-                    onClick={() => onToggleConge(singleDate, 0.5)}
-                  />
+                  <Button label="→ 0.5j" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 0.5)} />
                 )}
                 {isHalfConge && (
-                  <Button
-                    label="Passer à 1j"
-                    size="small"
-                    severity="warning"
-                    text
-                    onClick={() => onToggleConge(singleDate, 1)}
-                  />
+                  <Button label="→ 1j" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 1)} />
                 )}
-                <Button
-                  label="Retirer"
-                  size="small"
-                  severity="danger"
-                  text
-                  onClick={() => onToggleConge(singleDate)}
-                />
+                <Button label="Retirer" size="small" severity="danger" text onClick={() => onToggleConge(singleDate)} />
               </div>
             </div>
           }
         />
       )}
 
-      {/* Formation + Congé toggle (single, no formation, no congé) */}
+      {/* Formation + Congé toggles (single, no existing) */}
       {!isMulti && !isFormation && !isConge && (
-        <div className="mb-3 space-y-2">
-          <div className="flex gap-2">
-            <Button
-              label="Formation 1j"
-              icon="pi pi-book"
-              size="small"
-              severity="danger"
-              outlined
-              className="flex-1"
-              onClick={() => onToggleFormation(singleDate, 1)}
-            />
-            <Button
-              label="Formation 0.5j"
-              icon="pi pi-book"
-              size="small"
-              severity="danger"
-              outlined
-              className="flex-1"
-              onClick={() => onToggleFormation(singleDate, 0.5)}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              label="Congé 1j"
-              icon="pi pi-calendar-minus"
-              size="small"
-              severity="warning"
-              outlined
-              className="flex-1"
-              onClick={() => onToggleConge(singleDate, 1)}
-            />
-            <Button
-              label="Congé 0.5j"
-              icon="pi pi-calendar-minus"
-              size="small"
-              severity="warning"
-              outlined
-              className="flex-1"
-              onClick={() => onToggleConge(singleDate, 0.5)}
-            />
-          </div>
+        <div className="mb-3 flex flex-wrap gap-2">
+          <Button label="Formation 1j" icon="pi pi-book" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 1)} />
+          <Button label="Formation 0.5j" icon="pi pi-book" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 0.5)} />
+          <Button label="Congé 1j" icon="pi pi-calendar-minus" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 1)} />
+          <Button label="Congé 0.5j" icon="pi pi-calendar-minus" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 0.5)} />
         </div>
       )}
 
-      {/* Existing entries (single mode) */}
+      {/* Existing entries */}
       {!isMulti && !isBlocked && currentEntries.length > 0 && (
         <>
           <Divider />
-          <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary mb-3 flex items-center gap-2">
-            <i className="pi pi-list text-xs" />
-            Entrées existantes ({currentEntries.length})
-          </h4>
-          <div className="space-y-2 mb-3">
+          <div className="text-xs font-semibold text-color-secondary uppercase tracking-wide mb-2">
+            Entrées ({currentEntries.length})
+          </div>
+          <div className="space-y-1.5 mb-3">
             {currentEntries.map((entry) => (
               <div
                 key={entry.id}
-                className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                className={`group flex items-center gap-2 p-2.5 rounded-lg border transition-colors ${
                   editingEntry?.id === entry.id
-                    ? "border-blue-400 bg-blue-50/80 dark:bg-blue-900/20 shadow-sm"
-                    : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-sm"
+                    ? "border-blue-400 bg-blue-50/60 dark:bg-blue-900/15"
+                    : "border-gray-100 dark:border-[#1e2d44] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-sm font-bold truncate">
-                      {entry.client}
-                    </span>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                      entry.time >= 1
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-                    }`}>
-                      {entry.time}j
-                    </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-semibold truncate">{entry.client}</span>
+                    <span className={`text-[10px] font-bold ${
+                      entry.time >= 1 ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400"
+                    }`}>{entry.time}j</span>
+                    {entry.type && <Tag value={entry.type} severity="secondary" style={{ fontSize: "9px", padding: "1px 6px" }} />}
                   </div>
-                  <p className="text-xs text-color-secondary truncate">
+                  <p className="text-xs text-color-secondary truncate mt-0.5">
                     {entry.comment}
                     {entry.ticket && <span className="opacity-50"> · {entry.ticket}</span>}
                   </p>
-                  {entry.type && (
-                    <Tag value={entry.type} severity="secondary" style={{ fontSize: "10px", marginTop: "4px" }} />
-                  )}
                 </div>
-                <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    icon="pi pi-pencil"
-                    size="small"
-                    text
-                    rounded
-                    severity="info"
-                    onClick={() => startEditing(entry)}
-                    tooltip="Modifier"
-                    tooltipOptions={{ position: "top" }}
-                  />
-                  <Button
-                    icon="pi pi-trash"
-                    size="small"
-                    text
-                    rounded
-                    severity="danger"
-                    onClick={() => handleDelete(entry.id)}
-                    tooltip="Supprimer"
-                    tooltipOptions={{ position: "top" }}
-                  />
+                <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button icon="pi pi-pencil" size="small" text rounded severity="info" onClick={() => startEditing(entry)} />
+                  <Button icon="pi pi-trash" size="small" text rounded severity="danger" onClick={() => handleDelete(entry.id)} />
                 </div>
               </div>
             ))}
@@ -444,136 +323,61 @@ export default function EntryModal({
         </>
       )}
 
-      {/* Multi-mode: summary + congé + delete all */}
+      {/* Multi-mode summary */}
       {isMulti && (
         <>
           <Divider />
-          <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary mb-3 flex items-center gap-2">
-            <i className="pi pi-list text-xs" />
-            Résumé des jours sélectionnés
-          </h4>
-          <div className="space-y-1.5 max-h-40 overflow-y-auto mb-3">
+          <div className="text-xs font-semibold text-color-secondary uppercase tracking-wide mb-2">
+            Résumé
+          </div>
+          <div className="space-y-1 max-h-36 overflow-y-auto mb-3">
             {dates.map((d) => {
               const de = allEntries.filter((e) => e.date.startsWith(d));
               const total = de.reduce((sum, e) => sum + e.time, 0);
               const isFmt = formationDays.some((f) => f.date.startsWith(d));
               const cng = congeDays.find((c) => c.date.startsWith(d));
               return (
-                <div key={d} className="flex items-center justify-between text-sm py-2 px-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
-                  <span className="font-medium capitalize">{formatDate(d)}</span>
-                  <div className="flex items-center gap-1.5">
-                    {isFmt && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Formation</span>
-                    )}
-                    {cng && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
-                        Congé{cng.time < 1 ? ` ${cng.time}j` : ""}
-                      </span>
-                    )}
-                    {!isFmt && !cng && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                        total >= 1
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                          : total > 0
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                          : "bg-gray-100 text-gray-500 dark:bg-slate-700/50 dark:text-slate-400"
-                      }`}>
-                        {total}j
-                      </span>
-                    )}
-                  </div>
+                <div key={d} className="flex items-center justify-between text-sm py-1.5 px-2.5 rounded-md bg-gray-50 dark:bg-white/[0.02]">
+                  <span className="font-medium capitalize text-xs">{formatDate(d)}</span>
+                  <span className="text-xs">
+                    {isFmt && <span className="text-red-500 font-medium">Formation</span>}
+                    {cng && <span className="text-orange-500 font-medium">Congé{cng.time < 1 ? ` ${cng.time}j` : ""}</span>}
+                    {!isFmt && !cng && <span className={total >= 1 ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-gray-400"}>{total}j</span>}
+                  </span>
                 </div>
               );
             })}
           </div>
 
-          {/* Multi mode actions */}
+          {/* Multi actions */}
           {(() => {
             const eligibleDates = dates.filter(
-              (d) =>
-                !formationDays.some((f) => f.date.startsWith(d)) &&
-                !congeDays.some((c) => c.date.startsWith(d))
+              (d) => !formationDays.some((f) => f.date.startsWith(d)) && !congeDays.some((c) => c.date.startsWith(d))
             );
-            const formationOnlyDates = dates.filter(
-              (d) => formationDays.some((f) => f.date.startsWith(d))
-            );
-            const congeOnlyDates = dates.filter(
-              (d) => congeDays.some((c) => c.date.startsWith(d))
-            );
+            const formationOnlyDates = dates.filter((d) => formationDays.some((f) => f.date.startsWith(d)));
+            const congeOnlyDates = dates.filter((d) => congeDays.some((c) => c.date.startsWith(d)));
             return (
-              <div className="space-y-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-3">
                 {eligibleDates.length > 0 && (
                   <>
-                    <div className="flex gap-2">
-                      <Button
-                        label={`Formation 1j (${eligibleDates.length}j)`}
-                        size="small"
-                        severity="danger"
-                        outlined
-                        className="flex-1"
-                        onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 1); }}
-                      />
-                      <Button
-                        label={`Formation 0.5j (${eligibleDates.length}j)`}
-                        size="small"
-                        severity="danger"
-                        outlined
-                        className="flex-1"
-                        onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 0.5); }}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        label={`Congé 1j (${eligibleDates.length}j)`}
-                        size="small"
-                        severity="warning"
-                        outlined
-                        className="flex-1"
-                        onClick={() => { for (const d of eligibleDates) onToggleConge(d, 1); }}
-                      />
-                      <Button
-                        label={`Congé 0.5j (${eligibleDates.length}j)`}
-                        size="small"
-                        severity="warning"
-                        outlined
-                        className="flex-1"
-                        onClick={() => { for (const d of eligibleDates) onToggleConge(d, 0.5); }}
-                      />
-                    </div>
+                    <Button label={`Formation 1j (${eligibleDates.length})`} size="small" severity="danger" outlined onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 1); }} />
+                    <Button label={`Formation 0.5j (${eligibleDates.length})`} size="small" severity="danger" outlined onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 0.5); }} />
+                    <Button label={`Congé 1j (${eligibleDates.length})`} size="small" severity="warning" outlined onClick={() => { for (const d of eligibleDates) onToggleConge(d, 1); }} />
+                    <Button label={`Congé 0.5j (${eligibleDates.length})`} size="small" severity="warning" outlined onClick={() => { for (const d of eligibleDates) onToggleConge(d, 0.5); }} />
                   </>
                 )}
                 {formationOnlyDates.length > 0 && (
-                  <Button
-                    label={`Retirer formation (${formationOnlyDates.length}j)`}
-                    size="small"
-                    severity="danger"
-                    className="w-full"
-                    onClick={() => { for (const d of formationOnlyDates) onToggleFormation(d); }}
-                  />
+                  <Button label={`Retirer formation (${formationOnlyDates.length})`} size="small" severity="danger" onClick={() => { for (const d of formationOnlyDates) onToggleFormation(d); }} />
                 )}
                 {congeOnlyDates.length > 0 && (
-                  <Button
-                    label={`Retirer congé (${congeOnlyDates.length}j)`}
-                    size="small"
-                    severity="warning"
-                    className="w-full"
-                    onClick={() => { for (const d of congeOnlyDates) onToggleConge(d); }}
-                  />
+                  <Button label={`Retirer congé (${congeOnlyDates.length})`} size="small" severity="warning" onClick={() => { for (const d of congeOnlyDates) onToggleConge(d); }} />
                 )}
               </div>
             );
           })()}
 
           {dates.some((d) => allEntries.some((e) => e.date.startsWith(d))) && (
-            <Button
-              label="Supprimer toutes les entrées des jours sélectionnés"
-              icon="pi pi-trash"
-              severity="danger"
-              size="small"
-              outlined
-              className="w-full mb-3"
-              onClick={handleDeleteAll}
-            />
+            <Button label="Supprimer toutes les entrées" icon="pi pi-trash" severity="danger" size="small" outlined className="w-full mb-3" onClick={handleDeleteAll} />
           )}
         </>
       )}
@@ -582,119 +386,47 @@ export default function EntryModal({
       {(isMulti || (!isBlocked && (canAdd || editingEntry)) || ((isHalfConge || isHalfFormation) && canAdd)) && (
         <>
           <Divider />
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary flex items-center gap-2">
-                <i className={editingEntry ? "pi pi-pencil" : "pi pi-plus-circle"} style={{ fontSize: "12px" }} />
-                {editingEntry ? "Modifier l'entrée" : isMulti ? "Ajouter sur tous les jours" : "Nouvelle entrée"}
-              </h4>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-color-secondary uppercase tracking-wide">
+                {editingEntry ? "Modifier" : isMulti ? "Ajouter sur tous" : "Nouvelle entrée"}
+              </span>
               {editingEntry && (
-                <Button
-                  label="Annuler"
-                  size="small"
-                  text
-                  severity="info"
-                  onClick={resetForm}
-                  type="button"
-                />
+                <Button label="Annuler" size="small" text severity="secondary" onClick={resetForm} type="button" />
               )}
             </div>
 
-            {/* Client */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-color-secondary">
-                <i className="pi pi-building mr-1" style={{ fontSize: "11px" }} />
-                Client
-              </label>
-              <AutoComplete
-                value={client}
-                suggestions={filteredClients}
-                completeMethod={searchClients}
-                onChange={(e) => setClient(e.value)}
-                placeholder="Unhaj, Beaumanoir, TI..."
-                className="w-full"
-                inputClassName="w-full"
-              />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-color-secondary">Client</label>
+              <AutoComplete value={client} suggestions={filteredClients} completeMethod={searchClients} onChange={(e) => setClient(e.value)} placeholder="Nom du client" className="w-full" inputClassName="w-full" />
             </div>
 
-            {/* Ticket */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-color-secondary">
-                <i className="pi pi-ticket mr-1" style={{ fontSize: "11px" }} />
-                Ticket <span className="opacity-40 font-normal">(optionnel)</span>
-              </label>
-              <InputText
-                value={ticket}
-                onChange={(e) => setTicket(e.target.value)}
-                placeholder="CS0021003, 5164..."
-                className="w-full"
-              />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-color-secondary">Ticket <span className="opacity-40">(opt.)</span></label>
+              <InputText value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="Référence" className="w-full" />
             </div>
 
-            {/* Comment */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-color-secondary">
-                <i className="pi pi-align-left mr-1" style={{ fontSize: "11px" }} />
-                Commentaire
-              </label>
-              <InputTextarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Description de la tâche..."
-                className="w-full"
-                rows={2}
-                autoResize
-              />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-color-secondary">Commentaire</label>
+              <InputTextarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Description..." className="w-full" rows={2} autoResize />
             </div>
 
-            {/* Time + Type row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-clock mr-1" style={{ fontSize: "11px" }} />
-                  Temps
-                  {!isMulti && !editingEntry && (
-                    <span className="font-normal opacity-40 ml-1">({remainingTime}j dispo)</span>
-                  )}
-                </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-color-secondary">Temps</label>
                 {timeOptions.length > 0 && (
-                  <SelectButton
-                    value={time}
-                    onChange={(e) => setTime(e.value)}
-                    options={timeOptions}
-                    optionLabel="label"
-                    optionValue="value"
-                  />
+                  <SelectButton value={time} onChange={(e) => setTime(e.value)} options={timeOptions} optionLabel="label" optionValue="value" />
                 )}
               </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-color-secondary">
-                  <i className="pi pi-tag mr-1" style={{ fontSize: "11px" }} />
-                  Type <span className="opacity-40 font-normal">(opt.)</span>
-                </label>
-                <SelectButton
-                  value={type}
-                  onChange={(e) => setType(e.value)}
-                  options={typeOptions}
-                  optionLabel="label"
-                  optionValue="value"
-                />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-color-secondary">Type <span className="opacity-40">(opt.)</span></label>
+                <SelectButton value={type} onChange={(e) => setType(e.value)} options={typeOptions} optionLabel="label" optionValue="value" />
               </div>
             </div>
 
-            {/* Submit */}
             <Button
               type="submit"
-              label={
-                saving
-                  ? "Enregistrement..."
-                  : editingEntry
-                  ? "Mettre à jour"
-                  : isMulti
-                  ? `Ajouter sur ${dates.length} jours`
-                  : "Ajouter"
-              }
+              label={saving ? "..." : editingEntry ? "Mettre à jour" : isMulti ? `Ajouter (${dates.length}j)` : "Ajouter"}
               icon={editingEntry ? "pi pi-check" : "pi pi-plus"}
               loading={saving}
               disabled={saving || !client || !comment}
@@ -705,11 +437,11 @@ export default function EntryModal({
         </>
       )}
 
-      {/* Full day message (single mode) */}
+      {/* Full day */}
       {!isMulti && !isBlocked && !canAdd && !editingEntry && currentEntries.length > 0 && (
-        <div className="mt-4 text-center py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40">
-          <i className="pi pi-check-circle text-emerald-500 mr-2" />
-          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Journée complète</span>
+        <div className="mt-3 text-center py-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <i className="pi pi-check-circle mr-1" />
+          Journée complète
         </div>
       )}
     </Dialog>

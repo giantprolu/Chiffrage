@@ -149,57 +149,35 @@ export default function StatsCharts() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      {/* Date range selector */}
+    <div className="space-y-5 animate-fade-in">
+      {/* Date range */}
       <Card className="shadow-sm" style={{ borderRadius: "0.75rem" }}>
         <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-color-secondary">
-              <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
-              Du
-            </label>
-            <Calendar
-              value={fromDate}
-              onChange={(e) => setFromDate(e.value as Date | null)}
-              dateFormat="dd/mm/yy"
-              showIcon
-              className="w-44"
-            />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-color-secondary">Du</label>
+            <Calendar value={fromDate} onChange={(e) => setFromDate(e.value as Date | null)} dateFormat="dd/mm/yy" showIcon className="w-40" />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-color-secondary">
-              <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
-              Au
-            </label>
-            <Calendar
-              value={toDate}
-              onChange={(e) => setToDate(e.value as Date | null)}
-              dateFormat="dd/mm/yy"
-              showIcon
-              className="w-44"
-            />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-color-secondary">Au</label>
+            <Calendar value={toDate} onChange={(e) => setToDate(e.value as Date | null)} dateFormat="dd/mm/yy" showIcon className="w-40" />
           </div>
         </div>
       </Card>
 
       {/* Totals */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500 text-white shrink-0">
-            <i className="pi pi-briefcase" />
-          </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/15 border border-blue-100 dark:border-blue-800/30">
+          <i className="pi pi-briefcase text-blue-500" />
           <div>
-            <div className="text-2xl font-extrabold text-blue-700 dark:text-blue-300">{stats.totalDays}j</div>
-            <div className="text-xs text-blue-500/70 font-medium">Travail</div>
+            <div className="text-xl font-bold text-blue-700 dark:text-blue-300">{stats.totalDays}j</div>
+            <div className="text-xs text-blue-500/70">Travail</div>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/40">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500 text-white shrink-0">
-            <i className="pi pi-book" />
-          </div>
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/15 border border-emerald-100 dark:border-emerald-800/30">
+          <i className="pi pi-book text-emerald-500" />
           <div>
-            <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">{stats.totalFormation}j</div>
-            <div className="text-xs text-emerald-500/70 font-medium">Formation</div>
+            <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300">{stats.totalFormation}j</div>
+            <div className="text-xs text-emerald-500/70">Formation</div>
           </div>
         </div>
       </div>
