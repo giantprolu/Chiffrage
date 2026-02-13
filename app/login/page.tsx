@@ -2,16 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { InputText } from "primereact/inputtext";
-import { Password } from "primereact/password";
-import { Button } from "primereact/button";
-import { Message } from "primereact/message";
 import { login, register } from "@/lib/services";
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -81,21 +78,25 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="login-form">
               {error && (
-                <Message severity="error" text={error} className="w-full" />
+                <div className="login-error">
+                  <i className="pi pi-exclamation-circle" style={{ marginRight: 8 }} />
+                  {error}
+                </div>
               )}
 
               <div className="form-group">
                 <label htmlFor="username" className="form-label">
                   <i className="pi pi-user" style={{ fontSize: 10 }} /> Nom d&apos;utilisateur
                 </label>
-                <InputText
+                <input
                   id="username"
+                  type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Votre nom d'utilisateur"
                   required
                   autoFocus
-                  className="w-full"
+                  className="c-input"
                 />
               </div>
 
@@ -103,35 +104,42 @@ export default function LoginPage() {
                 <label htmlFor="password" className="form-label">
                   <i className="pi pi-lock" style={{ fontSize: 10 }} /> Mot de passe
                 </label>
-                <Password
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Votre mot de passe"
-                  toggleMask
-                  feedback={mode === "register"}
-                  required
-                  className="w-full"
-                  inputClassName="w-full"
-                  pt={{ input: { minLength: 4 } }}
-                />
+                <div className="password-wrap">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Votre mot de passe"
+                    required
+                    minLength={4}
+                    className="c-input"
+                    style={{ paddingRight: 40 }}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    <i className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"}`} />
+                  </button>
+                </div>
               </div>
 
-              <Button
+              <button
                 type="submit"
-                label={
-                  loading
-                    ? "Chargement..."
-                    : mode === "login"
-                    ? "Se connecter"
-                    : "Créer le compte"
-                }
-                icon={loading ? "pi pi-spin pi-spinner" : mode === "login" ? "pi pi-sign-in" : "pi pi-user-plus"}
-                loading={loading}
+                className="btn btn-primary btn-lg btn-full"
                 disabled={loading}
-                className="w-full login-submit-btn"
-                size="large"
-              />
+              >
+                {loading ? (
+                  <><i className="pi pi-spinner spinner" /> Chargement...</>
+                ) : mode === "login" ? (
+                  <><i className="pi pi-sign-in" /> Se connecter</>
+                ) : (
+                  <><i className="pi pi-user-plus" /> Créer le compte</>
+                )}
+              </button>
             </form>
 
             <p className="login-footer">

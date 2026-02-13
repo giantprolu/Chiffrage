@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "primereact/button";
-
 const MONTH_NAMES = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
@@ -38,11 +36,17 @@ export default function MonthNav({ month, year, onChange }: MonthNavProps) {
         <span className="month-year">{year}</span>
       </h2>
       <div className="month-arrows">
-        <Button icon="pi pi-chevron-left" onClick={prev} text size="small" severity="secondary" rounded aria-label="Mois précédent" />
-        <Button icon="pi pi-chevron-right" onClick={next} text size="small" severity="secondary" rounded aria-label="Mois suivant" />
+        <button className="btn-icon btn-ghost sm" onClick={prev} aria-label="Mois précédent">
+          <i className="pi pi-chevron-left" style={{ fontSize: 12 }} />
+        </button>
+        <button className="btn-icon btn-ghost sm" onClick={next} aria-label="Mois suivant">
+          <i className="pi pi-chevron-right" style={{ fontSize: 12 }} />
+        </button>
       </div>
       {!isCurrentMonth && (
-        <Button label="Aujourd'hui" size="small" text severity="info" onClick={goToToday} />
+        <button className="btn btn-ghost btn-sm" onClick={goToToday}>
+          Aujourd&apos;hui
+        </button>
       )}
     </div>
   );

@@ -2,8 +2,6 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
 import ThemeToggle from "./ThemeToggle";
 import { fetchMe, logout, deleteAccount } from "@/lib/services";
 
@@ -42,13 +40,6 @@ export default function Navbar() {
     else setDeleteLoading(false);
   };
 
-  const deleteFooter = (
-    <div className="dialog-footer">
-      <Button label="Annuler" icon="pi pi-times" severity="secondary" outlined onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading} />
-      <Button label={deleteLoading ? "Suppression…" : "Supprimer"} icon="pi pi-trash" severity="danger" onClick={handleDeleteAccount} disabled={deleteLoading} loading={deleteLoading} />
-    </div>
-  );
-
   return (
     <>
       <header className="nav-header">
@@ -78,29 +69,70 @@ export default function Navbar() {
             {username && (
               <>
                 <span className="nav-username">{username}</span>
-                <Button icon="pi pi-sign-out" size="small" text rounded severity="secondary" onClick={handleLogout} tooltip="Déconnexion" tooltipOptions={{ position: "bottom" }} />
-                <Button icon="pi pi-trash" size="small" text rounded severity="danger" onClick={() => setShowDeleteConfirm(true)} tooltip="Supprimer le compte" tooltipOptions={{ position: "bottom" }} />
+                <button
+                  className="btn-icon btn-ghost sm"
+                  onClick={handleLogout}
+                  title="Déconnexion"
+                >
+                  <i className="pi pi-sign-out" style={{ fontSize: 12 }} />
+                </button>
+                <button
+                  className="btn-icon btn-ghost sm"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  title="Supprimer le compte"
+                  style={{ color: "var(--danger)" }}
+                >
+                  <i className="pi pi-trash" style={{ fontSize: 12 }} />
+                </button>
               </>
             )}
           </div>
         </div>
       </header>
 
-      <Dialog
-        header="Supprimer le compte"
-        visible={showDeleteConfirm}
-        style={{ width: "400px" }}
-        onHide={() => setShowDeleteConfirm(false)}
-        footer={deleteFooter}
-        modal
-      >
-        <p className="delete-text">
-          Cette action est <strong>irréversible</strong>.
-        </p>
-        <p className="delete-sub">
-          Toutes vos données seront définitivement supprimées.
-        </p>
-      </Dialog>
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => !deleteLoading && setShowDeleteConfirm(false)}>
+          <div className="modal-panel" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-info">
+                <div className="modal-header-title">Supprimer le compte</div>
+              </div>
+              <button className="modal-close" onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
+                <i className="pi pi-times" style={{ fontSize: 12 }} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: "0.9rem", marginBottom: 8 }}>
+                Cette action est <strong>irréversible</strong>.
+              </p>
+              <p style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                Toutes vos données seront définitivement supprimées.
+              </p>
+              <div style={{ display: "flex", gap: 8, marginTop: 20, justifyContent: "flex-end" }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleteLoading}
+                >
+                  <i className="pi pi-times" /> Annuler
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? (
+                    <><i className="pi pi-spinner spinner" /> Suppression…</>
+                  ) : (
+                    <><i className="pi pi-trash" /> Supprimer</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

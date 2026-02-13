@@ -1,6 +1,5 @@
 "use client";
 
-import { Tooltip } from "primereact/tooltip";
 import type { Entry, FormationDay, CongeDay } from "@/lib/types";
 
 export type { Entry, FormationDay, CongeDay };
@@ -73,81 +72,64 @@ export default function DayCell({
     isToday && !isSelected ? "today" : "",
   ].filter(Boolean).join(" ");
 
-  const cellId = `day-cell-${day}`;
-
   return (
-    <>
-      {entries.length > 0 && (
-        <Tooltip target={`#${cellId}`} position="top" mouseTrack mouseTrackTop={10}>
-          <div style={{ fontSize: 12, maxWidth: 220 }}>
-            {entries.map(e => (
-              <div key={e.id} style={{ marginBottom: 4 }}>
-                <strong>{e.client}</strong> ({e.time}j)
-                <br />
-                <span style={{ opacity: 0.7 }}>{e.comment}</span>
-              </div>
-            ))}
-          </div>
-        </Tooltip>
-      )}
-      <div
-        id={cellId}
-        onClick={interactive ? onClick : undefined}
-        className={cellClasses}
-        style={!interactive ? { cursor: "default" } : undefined}
-      >
-        <div className="day-header">
-          <span className={`day-number ${isToday ? "today-badge" : ""}`}>
-            {day}
+    <div
+      onClick={interactive ? onClick : undefined}
+      className={cellClasses}
+      style={!interactive ? { cursor: "default" } : undefined}
+      title={entries.length > 0 ? entries.map(e => `${e.client} (${e.time}j) — ${e.comment}`).join('\n') : undefined}
+    >
+      <div className="day-header">
+        <span className={`day-number ${isToday ? "today-badge" : ""}`}>
+          {day}
+        </span>
+        {!isBlocked && totalTime > 0 && (
+          <span className={`day-time ${status === "full" ? "full" : "partial"}`}>
+            {totalTime}j
           </span>
-          {!isBlocked && totalTime > 0 && (
-            <span className={`day-time ${status === "full" ? "full" : "partial"}`}>
-              {totalTime}j
-            </span>
-          )}
-        </div>
-
-        {isFormation && (
-          <span className="day-badge formation">
-            <i className="pi pi-book" style={{ fontSize: 8, marginRight: 2 }} />
-            {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
-          </span>
-        )}
-
-        {isConge && (
-          <span className="day-badge conge">
-            <i className="pi pi-calendar-minus" style={{ fontSize: 8, marginRight: 2 }} />
-            {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
-          </span>
-        )}
-
-        {(!isBlocked || isHalfConge || isHalfFormation) && entries.length > 0 && (
-          <div className="day-entries">
-            {entries.slice(0, 2).map((e) => (
-              <div key={e.id} className="day-entry-line">
-                <span className="client">{e.client}</span>
-                <span className="time"> {e.time}j</span>
-              </div>
-            ))}
-            {entries.length > 2 && (
-              <span className="day-more">+{entries.length - 2}</span>
-            )}
-          </div>
-        )}
-
-        {status === "empty" && (
-          <div className="day-empty-icon">
-            <i className="pi pi-plus" />
-          </div>
-        )}
-
-        {isCopyMode && !isBlocked && totalTime < 1 && (
-          <div className="day-paste">
-            <i className="pi pi-clipboard" style={{ fontSize: 8, marginRight: 2 }} />
-            Coller
-          </div>
         )}
       </div>
-    </>
+
+      {isFormation && (
+        <span className="day-badge formation">
+          <i className="pi pi-book" style={{ fontSize: 8, marginRight: 2 }} />
+          {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
+        </span>
+      )}
+
+      {isConge && (
+        <span className="day-badge conge">
+          <i className="pi pi-calendar-minus" style={{ fontSize: 8, marginRight: 2 }} />
+          {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
+        </span>
+      )}
+
+      {(!isBlocked || isHalfConge || isHalfFormation) && entries.length > 0 && (
+        <div className="day-entries">
+          {entries.slice(0, 2).map((e) => (
+            <div key={e.id} className="day-entry-line">
+              <span className="client">{e.client}</span>
+              <span className="time"> {e.time}j</span>
+            </div>
+          ))}
+          {entries.length > 2 && (
+            <span className="day-more">+{entries.length - 2}</span>
+          )}
+        </div>
+      )}
+
+      {status === "empty" && (
+        <div className="day-empty-icon">
+          <i className="pi pi-plus" />
+        </div>
+      )}
+
+      {isCopyMode && !isBlocked && totalTime < 1 && (
+        <div className="day-paste">
+          <i className="pi pi-clipboard" style={{ fontSize: 8, marginRight: 2 }} />
+          Coller
+        </div>
+      )}
+    </div>
   );
 }

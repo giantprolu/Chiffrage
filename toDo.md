@@ -1,6 +1,7 @@
-- [x] Revoir l'ux/ui du formulaire d'ajout dans l'emploi du temps
-- [x] Revoir l'ux/ui de la selection de date de la page Stats
-- [x] Revoir l'ux/ui de la page export des données
-- [x] Revoir l'ux/ui de la page d'import des données
-- [x] supprimer le bouton de depliant du menu de navigation
-- [x] Revoir l'ux/ui de la page de connexion
+- [ ] Revoir l'ux/ui du formulaire d'ajout dans l'emploi du temps
+- [ ] Revoir l'ux/ui de la selection de date de la page Stats
+- [ ] Revoir l'ux/ui de la page export des données
+- [ ] Revoir l'ux/ui de la page d'import des données
+- [ ] supprimer le bouton de depliant du menu de navigation
+- [ ] Revoir l'ux/ui de la page de connexion
+- [ ] Revoir l'ux/ui de la page d'accueil

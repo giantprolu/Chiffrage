@@ -1,22 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { FileUpload, FileUploadHandlerEvent } from "primereact/fileupload";
-import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
-import { Card } from "primereact/card";
-import { Message } from "primereact/message";
-import { Tag } from "primereact/tag";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { importFile } from "@/lib/services";
-
-const COLUMNS = [
-  { field: "col", header: "Colonne", style: { fontFamily: "monospace", fontWeight: 600 } },
-  { field: "required", header: "Obligatoire" },
-  { field: "description", header: "Description" },
-];
 
 const COLUMN_DATA = [
   { col: "Date", required: "Oui", description: "Date de l'entrée (JJ/MM/AAAA ou date Excel)" },
@@ -33,16 +19,23 @@ export default function ImportPage() {
   const [result, setResult] = useState<{ message: string; success: boolean } | null>(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [showFormat, setShowFormat] = useState(false);
-  const fileUploadRef = useRef<FileUpload>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const handleSelect = (e: FileUploadHandlerEvent) => {
-    const f = e.files?.[0] || null;
+  const handleFile = (f: File | null) => {
     if (f) {
       setFile(f);
       setResult(null);
     }
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  }, []);
 
   const handleImport = async () => {
     if (!file) return;
@@ -60,26 +53,26 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="import-page animate-fade-in">
-      <div className="import-header">
-        <div className="import-icon-wrap">
+    <div className="import-page animate-fade-in" style={{ paddingTop: 32 }}>
+      <div className="page-header">
+        <div className="page-header-icon import">
           <i className="pi pi-upload" />
         </div>
         <div>
-          <h1 className="import-title">Importer un emploi du temps</h1>
-          <p className="import-subtitle">Chargez un fichier Excel ou CSV pour importer vos données</p>
+          <div className="page-header-title">Importer un emploi du temps</div>
+          <div className="page-header-subtitle">Chargez un fichier Excel ou CSV pour importer vos données</div>
         </div>
       </div>
 
       {/* Steps */}
       <div className="import-steps">
         <div className={`import-step ${!file ? "active" : "done"}`}>
-          <div className="import-step-num">{file ? <i className="pi pi-check" /> : "1"}</div>
+          <div className="import-step-num">{file ? <i className="pi pi-check" style={{ fontSize: 10 }} /> : "1"}</div>
           <span>Choisir un fichier</span>
         </div>
         <div className="import-step-line" />
         <div className={`import-step ${file && !result ? "active" : result?.success ? "done" : ""}`}>
-          <div className="import-step-num">{result?.success ? <i className="pi pi-check" /> : "2"}</div>
+          <div className="import-step-num">{result?.success ? <i className="pi pi-check" style={{ fontSize: 10 }} /> : "2"}</div>
           <span>Configurer & importer</span>
         </div>
         <div className="import-step-line" />
@@ -89,141 +82,142 @@ export default function ImportPage() {
         </div>
       </div>
 
-      <Card className="import-card">
-        <div className="import-stack">
+      <div className="card card-static">
+        <div className="form-stack">
           {/* Format info toggle */}
-          <button className="format-toggle" onClick={() => setShowFormat(!showFormat)}>
-            <i className={`pi ${showFormat ? "pi-chevron-up" : "pi-chevron-down"}`} />
+          <button className="format-toggle-btn" onClick={() => setShowFormat(!showFormat)}>
+            <i className={`pi ${showFormat ? "pi-chevron-up" : "pi-chevron-down"}`} style={{ fontSize: 12 }} />
             <span>Format attendu</span>
             <div className="format-badges">
-              <Tag value=".xlsx" severity="success" />
-              <Tag value=".csv" severity="info" />
+              <span className="tag tag-success">.xlsx</span>
+              <span className="tag tag-accent">.csv</span>
             </div>
           </button>
 
           {showFormat && (
-            <div className="format-details">
-              <DataTable
-                value={COLUMN_DATA}
-                size="small"
-                stripedRows
-                className="format-table"
-              >
-                {COLUMNS.map((col) => (
-                  <Column
-                    key={col.field}
-                    field={col.field}
-                    header={col.header}
-                    style={col.style}
-                  />
-                ))}
-              </DataTable>
-
+            <div className="format-details-box">
+              <table className="format-table">
+                <thead>
+                  <tr>
+                    <th>Colonne</th>
+                    <th>Obligatoire</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COLUMN_DATA.map((row) => (
+                    <tr key={row.col}>
+                      <td className="mono">{row.col}</td>
+                      <td>{row.required}</td>
+                      <td>{row.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               <div className="format-hints">
-                <p>
-                  <Tag value="Excel (.xlsx)" severity="success" style={{ marginRight: "0.25rem" }} />
-                  Un onglet par mois nommé avec le nom du mois.
-                </p>
-                <p>
-                  <Tag value="CSV (.csv)" severity="info" style={{ marginRight: "0.25rem" }} />
-                  Dates au format JJ/MM/AAAA ou AAAA-MM-JJ.
-                </p>
+                <p><span className="tag tag-success" style={{ marginRight: 4 }}>Excel (.xlsx)</span> Un onglet par mois nommé avec le nom du mois.</p>
+                <p><span className="tag tag-accent" style={{ marginRight: 4 }}>CSV (.csv)</span> Dates au format JJ/MM/AAAA ou AAAA-MM-JJ.</p>
               </div>
             </div>
           )}
 
-          {/* File upload */}
-          <FileUpload
-            ref={fileUploadRef}
-            mode="advanced"
+          {/* File upload dropzone */}
+          <input
+            ref={fileInputRef}
+            type="file"
             accept=".xlsx,.xls,.csv"
-            maxFileSize={10000000}
-            customUpload
-            uploadHandler={handleSelect}
-            auto
-            chooseLabel="Parcourir"
-            chooseOptions={{ icon: "pi pi-folder-open", className: "p-button-outlined" }}
-            emptyTemplate={
-              <div className="upload-zone">
-                <div className="upload-zone-icon">
-                  <i className="pi pi-cloud-upload" />
-                </div>
-                <p className="upload-zone-text">Glissez un fichier ici</p>
-                <p className="upload-zone-hint">.xlsx, .xls ou .csv — Max 10 Mo</p>
-              </div>
-            }
+            hidden
+            onChange={(e) => handleFile(e.target.files?.[0] || null)}
           />
+          <div
+            className={`upload-dropzone ${dragOver ? "dragover" : ""}`}
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
+            <div className="upload-dropzone-icon">
+              <i className="pi pi-cloud-upload" />
+            </div>
+            <div className="upload-dropzone-text">Glissez un fichier ici</div>
+            <div className="upload-dropzone-hint">.xlsx, .xls ou .csv — Max 10 Mo</div>
+            <div className="upload-dropzone-btn">
+              <i className="pi pi-folder-open" /> Parcourir
+            </div>
+          </div>
 
+          {/* Selected file info */}
           {file && (
-            <div className="import-file-info">
-              <div className="import-file-icon">
+            <div className="file-info-row">
+              <div className="file-info-icon">
                 <i className={`pi ${file.name.endsWith(".csv") ? "pi-file" : "pi-file-excel"}`} />
               </div>
-              <div className="import-file-details">
-                <span className="import-file-name">{file.name}</span>
-                <span className="import-file-size">{(file.size / 1024).toFixed(1)} Ko</span>
+              <div className="file-info-details">
+                <span className="file-info-name">{file.name}</span>
+                <span className="file-info-size">{(file.size / 1024).toFixed(1)} Ko</span>
               </div>
-              <Button
-                icon="pi pi-times"
-                text
-                rounded
-                severity="danger"
-                size="small"
-                onClick={() => {
-                  setFile(null);
-                  fileUploadRef.current?.clear();
-                }}
-              />
+              <button
+                className="btn-icon btn-ghost sm"
+                onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                style={{ color: "var(--danger)" }}
+              >
+                <i className="pi pi-times" style={{ fontSize: 12 }} />
+              </button>
             </div>
           )}
 
           {/* Result */}
           {result && (
-            <div className={`import-result ${result.success ? "success" : "error"}`}>
+            <div className={`result-banner ${result.success ? "success" : "error"}`}>
               <i className={`pi ${result.success ? "pi-check-circle" : "pi-times-circle"}`} />
               <span>{result.message}</span>
             </div>
           )}
 
           {/* Replace option */}
-          <div className="import-option">
-            <Checkbox
-              inputId="replace"
+          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: "0.85rem", cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              className="c-checkbox"
               checked={replaceExisting}
-              onChange={(e) => setReplaceExisting(e.checked ?? false)}
+              onChange={(e) => setReplaceExisting(e.target.checked)}
             />
-            <label htmlFor="replace">
-              Remplacer toutes les données existantes
-            </label>
-          </div>
+            Remplacer toutes les données existantes
+          </label>
 
           {replaceExisting && (
-            <Message
-              severity="warn"
-              text="Toutes vos entrées actuelles seront supprimées et remplacées par le contenu du fichier."
-            />
+            <div className="result-banner error" style={{ fontSize: "0.8rem" }}>
+              <i className="pi pi-exclamation-triangle" />
+              <span>Toutes vos entrées actuelles seront supprimées et remplacées par le contenu du fichier.</span>
+            </div>
           )}
 
           {/* Actions */}
-          <div className="import-actions">
-            <Button
-              label={loading ? "Import en cours…" : "Importer"}
-              icon="pi pi-upload"
-              loading={loading}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              className="btn btn-primary btn-full"
               disabled={!file || loading}
               onClick={handleImport}
-              className="import-main-btn"
-            />
-            <Button
-              label={result?.success ? "Voir le calendrier" : "Passer"}
-              icon={result?.success ? "pi pi-calendar" : "pi pi-arrow-right"}
-              severity="secondary"
-              outlined
+            >
+              {loading ? (
+                <><i className="pi pi-spinner spinner" /> Import en cours…</>
+              ) : (
+                <><i className="pi pi-upload" /> Importer</>
+              )}
+            </button>
+            <button
+              className="btn btn-outline"
               onClick={() => router.push("/")}
-            />
+            >
+              {result?.success ? (
+                <><i className="pi pi-calendar" /> Voir le calendrier</>
+              ) : (
+                <><i className="pi pi-arrow-right" /> Passer</>
+              )}
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

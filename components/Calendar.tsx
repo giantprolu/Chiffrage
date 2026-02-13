@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "primereact/button";
 import DayCell from "./DayCell";
 import EntryModal from "./EntryModal";
 import MonthNav from "./MonthNav";
@@ -235,22 +234,25 @@ export default function Calendar() {
 
       {/* Toolbar */}
       <div className="toolbar">
-        <Button
-          label={mode === "select" ? `${selectedDates.length} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
-          icon={mode === "select" ? "pi pi-check-circle" : "pi pi-check-square"}
-          size="small"
-          text={mode !== "select"}
-          severity={mode === "select" ? "info" : "secondary"}
+        <button
+          className={`btn btn-sm ${mode === "select" ? "btn-primary" : "btn-ghost"}`}
           onClick={() => {
             if (mode === "select") cancelMode();
             else { setMode("select"); setCopiedEntries([]); setSelectedDates([]); }
           }}
-        />
+        >
+          <i className={mode === "select" ? "pi pi-check-circle" : "pi pi-check-square"} style={{ fontSize: 12 }} />
+          {mode === "select" ? `${selectedDates.length} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
+        </button>
 
         {mode === "select" && selectedDates.length > 0 && (
           <>
-            <Button label="Éditer" icon="pi pi-pencil" size="small" severity="info" outlined onClick={openMultiEdit} />
-            <Button label="Copier" icon="pi pi-copy" size="small" severity="help" outlined onClick={handleCopy} />
+            <button className="btn btn-sm btn-outline" onClick={openMultiEdit}>
+              <i className="pi pi-pencil" style={{ fontSize: 12 }} /> Éditer
+            </button>
+            <button className="btn btn-sm btn-outline" onClick={handleCopy}>
+              <i className="pi pi-copy" style={{ fontSize: 12 }} /> Copier
+            </button>
           </>
         )}
 
@@ -263,7 +265,9 @@ export default function Calendar() {
 
         {(mode === "select" || mode === "copy") && (
           <span className="toolbar-spacer">
-            <Button label="Annuler" icon="pi pi-times" size="small" text severity="secondary" onClick={cancelMode} />
+            <button className="btn btn-sm btn-ghost" onClick={cancelMode}>
+              <i className="pi pi-times" style={{ fontSize: 12 }} /> Annuler
+            </button>
           </span>
         )}
       </div>

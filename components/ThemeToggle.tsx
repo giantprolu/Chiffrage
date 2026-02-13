@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "primereact/button";
 import { useTheme } from "./ThemeProvider";
 
 export default function ThemeToggle() {
@@ -23,15 +22,13 @@ export default function ThemeToggle() {
       : "pi pi-desktop";
 
   return (
-    <Button
-      icon={icon}
+    <button
+      className="btn-icon btn-ghost"
       onClick={cycle}
-      rounded
-      text
-      severity="secondary"
-      tooltip={`Thème: ${label}`}
-      tooltipOptions={{ position: "bottom" }}
       aria-label={`Thème: ${label}`}
-    />
+      title={`Thème: ${label}`}
+    >
+      <i className={icon} style={{ fontSize: 14 }} />
+    </button>
   );
 }

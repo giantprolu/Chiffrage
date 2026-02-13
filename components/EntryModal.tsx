@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Dialog } from "primereact/dialog";
-import { Button } from "primereact/button";
-import { InputText } from "primereact/inputtext";
-import { InputTextarea } from "primereact/inputtextarea";
-import { AutoComplete, AutoCompleteCompleteEvent } from "primereact/autocomplete";
-import { SelectButton } from "primereact/selectbutton";
-import { Tag } from "primereact/tag";
-import { Divider } from "primereact/divider";
+import { useEffect, useRef, useState } from "react";
 import type { Entry, FormationDay, CongeDay } from "@/lib/types";
 import { fetchClients, createEntry, updateEntry, deleteEntry } from "@/lib/services";
 
@@ -59,8 +51,11 @@ export default function EntryModal({
   const [type, setType] = useState("");
   const [clients, setClients] = useState<string[]>([]);
   const [filteredClients, setFilteredClients] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
+  const clientInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const isMulti = dates.length > 1;
   const singleDate = dates[0];
@@ -86,11 +81,38 @@ export default function EntryModal({
     fetchClients().then(setClients);
   }, []);
 
-  const searchClients = (event: AutoCompleteCompleteEvent) => {
-    const query = event.query.toLowerCase();
-    setFilteredClients(
-      clients.filter((c) => c.toLowerCase().includes(query) && c !== client)
-    );
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        clientInputRef.current &&
+        !clientInputRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleClientChange = (value: string) => {
+    setClient(value);
+    const query = value.toLowerCase();
+    if (query.length > 0) {
+      setFilteredClients(
+        clients.filter((c) => c.toLowerCase().includes(query) && c !== value)
+      );
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectClient = (c: string) => {
+    setClient(c);
+    setShowSuggestions(false);
   };
 
   const usedTime = currentEntries
@@ -187,125 +209,113 @@ export default function EntryModal({
     onSave();
   };
 
-  const timeOptions = [
-    ...(isMulti || remainingTime >= 0.5 || (editingEntry && editingEntry.time >= 0.5)
-      ? [{ label: "0.5j", value: 0.5 }]
-      : []),
-    ...(isMulti || remainingTime >= 1 || (editingEntry && editingEntry.time >= 1)
-      ? [{ label: "1j", value: 1 }]
-      : []),
-  ];
+  const showTime05 = isMulti || remainingTime >= 0.5 || (editingEntry && editingEntry.time >= 0.5);
+  const showTime1 = isMulti || remainingTime >= 1 || (editingEntry && editingEntry.time >= 1);
 
-  const typeOptions = [
-    { label: "—", value: "" },
-    ...TYPES.map((t) => ({ label: t, value: t })),
-  ];
+  const typeOptions = [{ label: "—", value: "" }, ...TYPES.map((t) => ({ label: t, value: t }))];
 
   const header = isMulti
     ? `${dates.length} jours sélectionnés`
     : formatDateLong(singleDate);
 
   const filledTime = usedTime + congeTime + formationTime;
-
   const progressPercent = Math.min(100, Math.round(filledTime * 100));
 
   return (
-    <Dialog
-      header={
-        <div className="modal-header-custom">
-          <div className="modal-header-title">{header}</div>
-          {!isMulti && (
-            <div className="modal-progress-section">
-              <div className="modal-progress-bar">
-                <div
-                  className={`modal-progress-fill ${progressPercent >= 100 ? "complete" : progressPercent >= 50 ? "half" : ""}`}
-                  style={{ width: `${progressPercent}%` }}
-                />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-header-info">
+            <div className="modal-header-title">{header}</div>
+            {!isMulti && (
+              <>
+                <div className="progress-bar-wrap" style={{ marginTop: 8 }}>
+                  <div
+                    className={`progress-bar-fill ${progressPercent >= 100 ? "complete" : "low"}`}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <div className="progress-label">
+                  <span>{filledTime}j / 1j</span>
+                  {remainingTime > 0 && !isBlocked && <span className="progress-remaining">{remainingTime}j disponible</span>}
+                  {remainingTime <= 0 && !isBlocked && <span className="progress-complete"><i className="pi pi-check-circle" /> Complet</span>}
+                </div>
+              </>
+            )}
+          </div>
+          <button className="modal-close" onClick={onClose}>
+            <i className="pi pi-times" style={{ fontSize: 12 }} />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {/* Multi date chips */}
+          {isMulti && (
+            <div className="quick-chips" style={{ marginBottom: 16 }}>
+              {dates.map((d) => (
+                <span key={d} className="tag tag-accent">{formatDate(d)}</span>
+              ))}
+            </div>
+          )}
+
+          {/* Formation / Congé status banners */}
+          {!isMulti && isFormation && (
+            <div className="status-banner formation">
+              <div className="status-banner-left">
+                <i className="pi pi-book" />
+                <span>Formation ({formationTime}j)</span>
               </div>
-              <div className="modal-progress-label">
-                <span>{filledTime}j / 1j</span>
-                {remainingTime > 0 && !isBlocked && <span className="modal-remaining">{remainingTime}j disponible</span>}
-                {remainingTime <= 0 && !isBlocked && <span className="modal-complete-label"><i className="pi pi-check-circle" /> Complet</span>}
+              <div className="status-banner-actions">
+                {isFullFormation && (
+                  <button className="btn btn-sm btn-ghost" style={{ color: "var(--danger)" }} onClick={() => onToggleFormation(singleDate, 0.5)}>→ 0.5j</button>
+                )}
+                {isHalfFormation && (
+                  <button className="btn btn-sm btn-ghost" style={{ color: "var(--danger)" }} onClick={() => onToggleFormation(singleDate, 1)}>→ 1j</button>
+                )}
+                <button className="btn-icon btn-ghost sm" onClick={() => onToggleFormation(singleDate)} title="Retirer">
+                  <i className="pi pi-times" style={{ fontSize: 10 }} />
+                </button>
               </div>
             </div>
           )}
-        </div>
-      }
-      visible={true}
-      className="entry-dialog"
-      style={{ width: "520px", maxHeight: "85vh" }}
-      onHide={onClose}
-      modal
-    >
-      {/* Multi date subtitle */}
-      {isMulti && (
-        <div className="multi-dates-chips">
-          {dates.map((d) => (
-            <span key={d} className="date-chip">{formatDate(d)}</span>
-          ))}
-        </div>
-      )}
 
-      {/* Formation / Congé status banners */}
-      {!isMulti && isFormation && (
-        <div className="status-banner formation">
-          <div className="status-banner-left">
-            <i className="pi pi-book" />
-            <span>Formation ({formationTime}j)</span>
-          </div>
-          <div className="status-banner-actions">
-            {isFullFormation && (
-              <Button label="→ 0.5j" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 0.5)} />
-            )}
-            {isHalfFormation && (
-              <Button label="→ 1j" size="small" severity="danger" text onClick={() => onToggleFormation(singleDate, 1)} />
-            )}
-            <Button icon="pi pi-times" size="small" severity="secondary" text rounded onClick={() => onToggleFormation(singleDate)} tooltip="Retirer" tooltipOptions={{ position: "top" }} />
-          </div>
-        </div>
-      )}
-
-      {!isMulti && isConge && (
-        <div className="status-banner conge">
-          <div className="status-banner-left">
-            <i className="pi pi-calendar-minus" />
-            <span>Congé ({congeTime}j)</span>
-          </div>
-          <div className="status-banner-actions">
-            {isFullConge && (
-              <Button label="→ 0.5j" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 0.5)} />
-            )}
-            {isHalfConge && (
-              <Button label="→ 1j" size="small" severity="warning" text onClick={() => onToggleConge(singleDate, 1)} />
-            )}
-            <Button icon="pi pi-times" size="small" severity="secondary" text rounded onClick={() => onToggleConge(singleDate)} tooltip="Retirer" tooltipOptions={{ position: "top" }} />
-          </div>
-        </div>
-      )}
-
-      {/* Quick action chips */}
-      {!isMulti && !isFormation && !isConge && (
-        <div className="quick-actions">
-          <span className="quick-actions-label">Actions rapides</span>
-          <div className="quick-actions-chips">
-            <button className="action-chip formation" onClick={() => onToggleFormation(singleDate, 1)}><i className="pi pi-book" /> Formation 1j</button>
-            <button className="action-chip formation" onClick={() => onToggleFormation(singleDate, 0.5)}><i className="pi pi-book" /> Formation 0.5j</button>
-            <button className="action-chip conge" onClick={() => onToggleConge(singleDate, 1)}><i className="pi pi-calendar-minus" /> Congé 1j</button>
-            <button className="action-chip conge" onClick={() => onToggleConge(singleDate, 0.5)}><i className="pi pi-calendar-minus" /> Congé 0.5j</button>
-          </div>
-        </div>
-      )}
-
-      {/* Existing entries */}
-      {!isMulti && !isBlocked && currentEntries.length > 0 && (
-        <>
-          <div className="entries-section">
-            <div className="entries-section-header">
-              <span className="modal-section-title" style={{ marginBottom: 0 }}>
-                Entrées ({currentEntries.length})
-              </span>
+          {!isMulti && isConge && (
+            <div className="status-banner conge">
+              <div className="status-banner-left">
+                <i className="pi pi-calendar-minus" />
+                <span>Congé ({congeTime}j)</span>
+              </div>
+              <div className="status-banner-actions">
+                {isFullConge && (
+                  <button className="btn btn-sm btn-ghost" style={{ color: "var(--orange)" }} onClick={() => onToggleConge(singleDate, 0.5)}>→ 0.5j</button>
+                )}
+                {isHalfConge && (
+                  <button className="btn btn-sm btn-ghost" style={{ color: "var(--orange)" }} onClick={() => onToggleConge(singleDate, 1)}>→ 1j</button>
+                )}
+                <button className="btn-icon btn-ghost sm" onClick={() => onToggleConge(singleDate)} title="Retirer">
+                  <i className="pi pi-times" style={{ fontSize: 10 }} />
+                </button>
+              </div>
             </div>
-            <div className="entries-list">
+          )}
+
+          {/* Quick action chips */}
+          {!isMulti && !isFormation && !isConge && (
+            <>
+              <div className="section-label">Actions rapides</div>
+              <div className="quick-chips">
+                <button className="chip formation" onClick={() => onToggleFormation(singleDate, 1)}><i className="pi pi-book" /> Formation 1j</button>
+                <button className="chip formation" onClick={() => onToggleFormation(singleDate, 0.5)}><i className="pi pi-book" /> Formation 0.5j</button>
+                <button className="chip conge" onClick={() => onToggleConge(singleDate, 1)}><i className="pi pi-calendar-minus" /> Congé 1j</button>
+                <button className="chip conge" onClick={() => onToggleConge(singleDate, 0.5)}><i className="pi pi-calendar-minus" /> Congé 0.5j</button>
+              </div>
+            </>
+          )}
+
+          {/* Existing entries */}
+          {!isMulti && !isBlocked && currentEntries.length > 0 && (
+            <>
+              <div className="section-label">Entrées ({currentEntries.length})</div>
               {currentEntries.map((entry) => (
                 <div
                   key={entry.id}
@@ -315,7 +325,7 @@ export default function EntryModal({
                     <div className="entry-card-head">
                       <span className="entry-client">{entry.client}</span>
                       <span className={`entry-time-badge ${entry.time >= 1 ? "full" : "half"}`}>{entry.time}j</span>
-                      {entry.type && <Tag value={entry.type} severity="secondary" style={{ fontSize: 9, padding: "2px 8px" }} />}
+                      {entry.type && <span className="tag tag-default">{entry.type}</span>}
                     </div>
                     <p className="entry-desc">
                       {entry.comment}
@@ -323,135 +333,189 @@ export default function EntryModal({
                     </p>
                   </div>
                   <div className="entry-actions">
-                    <Button icon="pi pi-pencil" size="small" text rounded severity="info" onClick={() => startEditing(entry)} tooltip="Modifier" tooltipOptions={{ position: "top" }} />
-                    <Button icon="pi pi-trash" size="small" text rounded severity="danger" onClick={() => handleDelete(entry.id)} tooltip="Supprimer" tooltipOptions={{ position: "top" }} />
+                    <button className="btn-icon btn-ghost sm" onClick={() => startEditing(entry)} title="Modifier">
+                      <i className="pi pi-pencil" style={{ fontSize: 11, color: "var(--accent)" }} />
+                    </button>
+                    <button className="btn-icon btn-ghost sm" onClick={() => handleDelete(entry.id)} title="Supprimer">
+                      <i className="pi pi-trash" style={{ fontSize: 11, color: "var(--danger)" }} />
+                    </button>
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Multi-mode summary */}
-      {isMulti && (
-        <>
-          <Divider />
-          <div className="modal-section-title">Résumé</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 144, overflowY: "auto", marginBottom: 12 }}>
-            {dates.map((d) => {
-              const de = allEntries.filter((e) => e.date.startsWith(d));
-              const total = de.reduce((sum, e) => sum + e.time, 0);
-              const isFmt = formationDays.some((f) => f.date.startsWith(d));
-              const cng = congeDays.find((c) => c.date.startsWith(d));
-              return (
-                <div key={d} className="multi-summary-row">
-                  <span className="multi-summary-date">{formatDate(d)}</span>
-                  <span style={{ fontSize: 12 }}>
-                    {isFmt && <span className="status-formation">Formation</span>}
-                    {cng && <span className="status-conge">Congé{cng.time < 1 ? ` ${cng.time}j` : ""}</span>}
-                    {!isFmt && !cng && <span className={total >= 1 ? "status-full" : ""} style={total < 1 ? { color: "var(--muted)" } : undefined}>{total}j</span>}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Multi actions */}
-          {(() => {
-            const eligibleDates = dates.filter(
-              (d) => !formationDays.some((f) => f.date.startsWith(d)) && !congeDays.some((c) => c.date.startsWith(d))
-            );
-            const formationOnlyDates = dates.filter((d) => formationDays.some((f) => f.date.startsWith(d)));
-            const congeOnlyDates = dates.filter((d) => congeDays.some((c) => c.date.startsWith(d)));
-            return (
-              <div className="toggle-row">
-                {eligibleDates.length > 0 && (
-                  <>
-                    <Button label={`Formation 1j (${eligibleDates.length})`} size="small" severity="danger" outlined onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 1); }} />
-                    <Button label={`Formation 0.5j (${eligibleDates.length})`} size="small" severity="danger" outlined onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 0.5); }} />
-                    <Button label={`Congé 1j (${eligibleDates.length})`} size="small" severity="warning" outlined onClick={() => { for (const d of eligibleDates) onToggleConge(d, 1); }} />
-                    <Button label={`Congé 0.5j (${eligibleDates.length})`} size="small" severity="warning" outlined onClick={() => { for (const d of eligibleDates) onToggleConge(d, 0.5); }} />
-                  </>
-                )}
-                {formationOnlyDates.length > 0 && (
-                  <Button label={`Retirer formation (${formationOnlyDates.length})`} size="small" severity="danger" onClick={() => { for (const d of formationOnlyDates) onToggleFormation(d); }} />
-                )}
-                {congeOnlyDates.length > 0 && (
-                  <Button label={`Retirer congé (${congeOnlyDates.length})`} size="small" severity="warning" onClick={() => { for (const d of congeOnlyDates) onToggleConge(d); }} />
-                )}
-              </div>
-            );
-          })()}
-
-          {dates.some((d) => allEntries.some((e) => e.date.startsWith(d))) && (
-            <Button label="Supprimer toutes les entrées" icon="pi pi-trash" severity="danger" size="small" outlined style={{ width: "100%", marginBottom: 12 }} onClick={handleDeleteAll} />
+            </>
           )}
-        </>
-      )}
 
-      {/* Form */}
-      {(isMulti || (!isBlocked && (canAdd || editingEntry)) || ((isHalfConge || isHalfFormation) && canAdd)) && (
-        <>
-          <Divider />
-          <form onSubmit={handleSubmit} className="entry-form">
-            <div className="entry-form-header">
-              <span className="modal-section-title" style={{ marginBottom: 0 }}>
-                {editingEntry ? "Modifier l'entrée" : isMulti ? "Ajouter sur tous les jours" : "Nouvelle entrée"}
-              </span>
-              {editingEntry && (
-                <Button label="Annuler" size="small" text severity="secondary" onClick={resetForm} type="button" icon="pi pi-times" />
+          {/* Multi-mode summary */}
+          {isMulti && (
+            <>
+              <hr className="divider" />
+              <div className="section-label">Résumé</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 144, overflowY: "auto", marginBottom: 12 }}>
+                {dates.map((d) => {
+                  const de = allEntries.filter((e) => e.date.startsWith(d));
+                  const total = de.reduce((sum, e) => sum + e.time, 0);
+                  const isFmt = formationDays.some((f) => f.date.startsWith(d));
+                  const cng = congeDays.find((c) => c.date.startsWith(d));
+                  return (
+                    <div key={d} className="multi-summary-row">
+                      <span className="multi-summary-date">{formatDate(d)}</span>
+                      <span style={{ fontSize: 12 }}>
+                        {isFmt && <span className="status-formation">Formation</span>}
+                        {cng && <span className="status-conge">Congé{cng.time < 1 ? ` ${cng.time}j` : ""}</span>}
+                        {!isFmt && !cng && <span className={total >= 1 ? "status-full" : ""} style={total < 1 ? { color: "var(--muted)" } : undefined}>{total}j</span>}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Multi actions */}
+              {(() => {
+                const eligibleDates = dates.filter(
+                  (d) => !formationDays.some((f) => f.date.startsWith(d)) && !congeDays.some((c) => c.date.startsWith(d))
+                );
+                const formationOnlyDates = dates.filter((d) => formationDays.some((f) => f.date.startsWith(d)));
+                const congeOnlyDates = dates.filter((d) => congeDays.some((c) => c.date.startsWith(d)));
+                return (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                    {eligibleDates.length > 0 && (
+                      <>
+                        <button className="btn btn-sm btn-outline" style={{ borderColor: "rgba(239,68,68,0.3)", color: "var(--danger)" }} onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 1); }}>Formation 1j ({eligibleDates.length})</button>
+                        <button className="btn btn-sm btn-outline" style={{ borderColor: "rgba(239,68,68,0.3)", color: "var(--danger)" }} onClick={() => { for (const d of eligibleDates) onToggleFormation(d, 0.5); }}>Formation 0.5j ({eligibleDates.length})</button>
+                        <button className="btn btn-sm btn-outline" style={{ borderColor: "rgba(249,115,22,0.3)", color: "var(--orange)" }} onClick={() => { for (const d of eligibleDates) onToggleConge(d, 1); }}>Congé 1j ({eligibleDates.length})</button>
+                        <button className="btn btn-sm btn-outline" style={{ borderColor: "rgba(249,115,22,0.3)", color: "var(--orange)" }} onClick={() => { for (const d of eligibleDates) onToggleConge(d, 0.5); }}>Congé 0.5j ({eligibleDates.length})</button>
+                      </>
+                    )}
+                    {formationOnlyDates.length > 0 && (
+                      <button className="btn btn-sm btn-danger" onClick={() => { for (const d of formationOnlyDates) onToggleFormation(d); }}>Retirer formation ({formationOnlyDates.length})</button>
+                    )}
+                    {congeOnlyDates.length > 0 && (
+                      <button className="btn btn-sm btn-outline" style={{ borderColor: "rgba(249,115,22,0.3)", color: "var(--orange)" }} onClick={() => { for (const d of congeOnlyDates) onToggleConge(d); }}>Retirer congé ({congeOnlyDates.length})</button>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {dates.some((d) => allEntries.some((e) => e.date.startsWith(d))) && (
+                <button className="btn btn-sm btn-danger btn-full" style={{ marginBottom: 12 }} onClick={handleDeleteAll}>
+                  <i className="pi pi-trash" /> Supprimer toutes les entrées
+                </button>
               )}
+            </>
+          )}
+
+          {/* Form */}
+          {(isMulti || (!isBlocked && (canAdd || editingEntry)) || ((isHalfConge || isHalfFormation) && canAdd)) && (
+            <>
+              <hr className="divider" />
+              <form onSubmit={handleSubmit} className="form-stack">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div className="section-label" style={{ margin: 0 }}>
+                    {editingEntry ? "Modifier l'entrée" : isMulti ? "Ajouter sur tous les jours" : "Nouvelle entrée"}
+                  </div>
+                  {editingEntry && (
+                    <button className="btn btn-sm btn-ghost" type="button" onClick={resetForm}>
+                      <i className="pi pi-times" style={{ fontSize: 10 }} /> Annuler
+                    </button>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label"><i className="pi pi-user" style={{ fontSize: 10 }} /> Client</label>
+                  <div className="autocomplete-wrap">
+                    <input
+                      ref={clientInputRef}
+                      type="text"
+                      value={client}
+                      onChange={(e) => handleClientChange(e.target.value)}
+                      onFocus={() => { if (client.length > 0 && filteredClients.length > 0) setShowSuggestions(true); }}
+                      placeholder="Rechercher un client..."
+                      className="c-input"
+                    />
+                    {showSuggestions && filteredClients.length > 0 && (
+                      <div className="autocomplete-dropdown" ref={suggestionsRef}>
+                        {filteredClients.map((c) => (
+                          <div key={c} className="autocomplete-item" onClick={() => selectClient(c)}>
+                            {c}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label"><i className="pi pi-hashtag" style={{ fontSize: 10 }} /> Ticket <span className="opt">(optionnel)</span></label>
+                  <input
+                    type="text"
+                    value={ticket}
+                    onChange={(e) => setTicket(e.target.value)}
+                    placeholder="Référence du ticket"
+                    className="c-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label"><i className="pi pi-pencil" style={{ fontSize: 10 }} /> Commentaire</label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Décrivez votre activité..."
+                    className="c-textarea"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label"><i className="pi pi-clock" style={{ fontSize: 10 }} /> Durée</label>
+                    <div className="pill-toggle">
+                      {showTime05 && (
+                        <button type="button" className={`pill-toggle-btn ${time === 0.5 ? "active" : ""}`} onClick={() => setTime(0.5)}>0.5j</button>
+                      )}
+                      {showTime1 && (
+                        <button type="button" className={`pill-toggle-btn ${time === 1 ? "active" : ""}`} onClick={() => setTime(1)}>1j</button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label"><i className="pi pi-tag" style={{ fontSize: 10 }} /> Type <span className="opt">(opt.)</span></label>
+                    <select value={type} onChange={(e) => setType(e.target.value)} className="c-select">
+                      {typeOptions.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className={`btn btn-full ${editingEntry ? "btn-primary" : "btn-primary"}`}
+                  disabled={saving || !client || !comment}
+                >
+                  {saving ? (
+                    <><i className="pi pi-spinner spinner" /> Enregistrement...</>
+                  ) : editingEntry ? (
+                    <><i className="pi pi-check" /> Mettre à jour</>
+                  ) : isMulti ? (
+                    <><i className="pi pi-plus" /> Ajouter ({dates.length}j)</>
+                  ) : (
+                    <><i className="pi pi-plus" /> Ajouter l&apos;entrée</>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
+
+          {/* Full day message */}
+          {!isMulti && !isBlocked && !canAdd && !editingEntry && currentEntries.length > 0 && (
+            <div className="day-complete-banner">
+              <i className="pi pi-check-circle" />
+              <span>Journée complète</span>
             </div>
-
-            <div className="form-group">
-              <label className="form-label"><i className="pi pi-user" style={{ fontSize: 10 }} /> Client</label>
-              <AutoComplete value={client} suggestions={filteredClients} completeMethod={searchClients} onChange={(e) => setClient(e.value)} placeholder="Rechercher un client..." className="w-full" inputClassName="w-full" />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label"><i className="pi pi-hashtag" style={{ fontSize: 10 }} /> Ticket <span className="opt">(optionnel)</span></label>
-              <InputText value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="Référence du ticket" className="w-full" />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label"><i className="pi pi-pencil" style={{ fontSize: 10 }} /> Commentaire</label>
-              <InputTextarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Décrivez votre activité..." className="w-full" rows={2} autoResize />
-            </div>
-
-            <div className="form-row-inline">
-              <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label"><i className="pi pi-clock" style={{ fontSize: 10 }} /> Durée</label>
-                {timeOptions.length > 0 && (
-                  <SelectButton value={time} onChange={(e) => setTime(e.value)} options={timeOptions} optionLabel="label" optionValue="value" className="time-select" />
-                )}
-              </div>
-              <div className="form-group" style={{ flex: 1 }}>
-                <label className="form-label"><i className="pi pi-tag" style={{ fontSize: 10 }} /> Type <span className="opt">(optionnel)</span></label>
-                <SelectButton value={type} onChange={(e) => setType(e.value)} options={typeOptions} optionLabel="label" optionValue="value" className="type-select" />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              label={saving ? "Enregistrement..." : editingEntry ? "Mettre à jour" : isMulti ? `Ajouter (${dates.length}j)` : "Ajouter l'entrée"}
-              icon={editingEntry ? "pi pi-check" : "pi pi-plus"}
-              loading={saving}
-              disabled={saving || !client || !comment}
-              className="submit-btn"
-              severity={editingEntry ? "info" : undefined}
-            />
-          </form>
-        </>
-      )}
-
-      {/* Full day */}
-      {!isMulti && !isBlocked && !canAdd && !editingEntry && currentEntries.length > 0 && (
-        <div className="day-complete-banner">
-          <i className="pi pi-check-circle" />
-          <span>Journée complète</span>
+          )}
         </div>
-      )}
-    </Dialog>
+      </div>
+    </div>
   );
 }

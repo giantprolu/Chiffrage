@@ -1,41 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { SelectButton } from "primereact/selectbutton";
-import { Dropdown } from "primereact/dropdown";
-import { InputNumber } from "primereact/inputnumber";
-import { Calendar } from "primereact/calendar";
-import { Button } from "primereact/button";
-import { Card } from "primereact/card";
 
 const MONTH_NAMES = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
 ];
 
-const modeOptions = [
-  { label: "Par mois", value: "month" },
-  { label: "Période personnalisée", value: "custom" },
-];
-
-const monthOptions = MONTH_NAMES.map((name, i) => ({
-  label: name,
-  value: i + 1,
-}));
-
 export default function ExportPage() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [mode, setMode] = useState<"month" | "custom">("month");
 
   const getRange = () => {
     if (mode === "custom" && fromDate && toDate) {
-      const fmtDate = (d: Date) =>
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      return { from: fmtDate(fromDate), to: fmtDate(toDate) };
+      return { from: fromDate, to: toDate };
     }
     const start = `${year}-${String(month).padStart(2, "0")}-01`;
     const lastDay = new Date(year, month, 0).getDate();
@@ -80,81 +62,72 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="export-page animate-fade-in">
-      <div className="export-header">
-        <div className="export-icon-wrap">
+    <div className="export-page animate-fade-in" style={{ paddingTop: 32 }}>
+      <div className="page-header">
+        <div className="page-header-icon export">
           <i className="pi pi-download" />
         </div>
         <div>
-          <h1 className="export-title">Export des données</h1>
-          <p className="export-subtitle">Téléchargez vos données de chiffrage au format CSV ou Excel</p>
+          <div className="page-header-title">Export des données</div>
+          <div className="page-header-subtitle">Téléchargez vos données de chiffrage au format CSV ou Excel</div>
         </div>
       </div>
 
-      <Card className="export-card">
-        <div className="export-stack">
-          <div className="export-mode-section">
+      <div className="card card-static" style={{ marginBottom: 20 }}>
+        <div className="form-stack">
+          <div className="form-group">
             <label className="form-label"><i className="pi pi-sliders-h" style={{ fontSize: 10 }} /> Mode de sélection</label>
-            <SelectButton
-              value={mode}
-              onChange={(e) => setMode(e.value)}
-              options={modeOptions}
-              optionLabel="label"
-              optionValue="value"
-              className="export-mode-toggle"
-            />
+            <div className="pill-toggle">
+              <button className={`pill-toggle-btn ${mode === "month" ? "active" : ""}`} onClick={() => setMode("month")}>Par mois</button>
+              <button className={`pill-toggle-btn ${mode === "custom" ? "active" : ""}`} onClick={() => setMode("custom")}>Période personnalisée</button>
+            </div>
           </div>
 
           {mode === "month" ? (
-            <div className="export-period-row">
-              <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-row">
+              <div className="form-group">
                 <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Mois</label>
-                <Dropdown
-                  value={month}
-                  onChange={(e) => setMonth(e.value)}
-                  options={monthOptions}
-                  optionLabel="label"
-                  optionValue="value"
-                  className="w-full"
-                />
+                <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="c-select">
+                  {MONTH_NAMES.map((name, i) => (
+                    <option key={i} value={i + 1}>{name}</option>
+                  ))}
+                </select>
               </div>
-              <div className="form-group" style={{ flex: 1 }}>
+              <div className="form-group">
                 <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Année</label>
-                <InputNumber
+                <input
+                  type="number"
                   value={year}
-                  onValueChange={(e) => setYear(e.value ?? now.getFullYear())}
-                  useGrouping={false}
-                  className="w-full"
+                  onChange={(e) => setYear(Number(e.target.value) || now.getFullYear())}
+                  className="c-input"
                 />
               </div>
             </div>
           ) : (
-            <div className="export-period-row">
-              <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-row">
+              <div className="form-group">
                 <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Du</label>
-                <Calendar
+                <input
+                  type="date"
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.value as Date | null)}
-                  dateFormat="dd/mm/yy"
-                  showIcon
-                  className="w-full"
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="c-date"
                 />
               </div>
-              <div className="form-group" style={{ flex: 1 }}>
+              <div className="form-group">
                 <label className="form-label"><i className="pi pi-calendar" style={{ fontSize: 10 }} /> Au</label>
-                <Calendar
+                <input
+                  type="date"
                   value={toDate}
-                  onChange={(e) => setToDate(e.value as Date | null)}
-                  dateFormat="dd/mm/yy"
-                  showIcon
-                  className="w-full"
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="c-date"
                 />
               </div>
             </div>
           )}
 
           <div className="export-buttons">
-            <button className="export-btn csv" onClick={() => handleExport("csv")}>
+            <button className="export-btn" onClick={() => handleExport("csv")}>
               <div className="export-btn-icon csv">
                 <i className="pi pi-file" />
               </div>
@@ -163,7 +136,7 @@ export default function ExportPage() {
                 <span className="export-btn-desc">Fichier tableur simple</span>
               </div>
             </button>
-            <button className="export-btn excel" onClick={() => handleExport("excel")}>
+            <button className="export-btn" onClick={() => handleExport("excel")}>
               <div className="export-btn-icon excel">
                 <i className="pi pi-file-excel" />
               </div>
@@ -174,7 +147,7 @@ export default function ExportPage() {
             </button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
