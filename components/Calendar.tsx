@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "primereact/button";
-import { Tag } from "primereact/tag";
-import { Message } from "primereact/message";
 import DayCell, { Entry, FormationDay, CongeDay } from "./DayCell";
 import EntryModal from "./EntryModal";
 import MonthNav from "./MonthNav";
@@ -207,7 +205,7 @@ export default function Calendar() {
   };
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <MonthNav
         month={month}
         year={year}
@@ -218,12 +216,12 @@ export default function Calendar() {
       />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
+      <div className="flex items-center gap-2 mb-4 flex-wrap p-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
         <Button
-          label={mode === "select" ? `${selectedDates.length} jour${selectedDates.length > 1 ? "s" : ""} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
-          icon="pi pi-check-square"
+          label={mode === "select" ? `${selectedDates.length} sélectionné${selectedDates.length > 1 ? "s" : ""}` : "Sélectionner"}
+          icon={mode === "select" ? "pi pi-check-circle" : "pi pi-check-square"}
           size="small"
-          severity={mode === "select" ? undefined : "secondary"}
+          severity={mode === "select" ? "info" : "secondary"}
           outlined={mode !== "select"}
           onClick={() => {
             if (mode === "select") {
@@ -255,11 +253,12 @@ export default function Calendar() {
         )}
 
         {mode === "copy" && (
-          <Message
-            severity="info"
-            text={`${copiedEntries.length} tâche${copiedEntries.length > 1 ? "s" : ""} copiée${copiedEntries.length > 1 ? "s" : ""} — cliquez sur un jour pour coller`}
-            className="ml-2"
-          />
+          <div className="flex items-center gap-2 ml-2 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40">
+            <i className="pi pi-clipboard text-blue-500 text-sm" />
+            <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+              {copiedEntries.length} tâche{copiedEntries.length > 1 ? "s" : ""} — cliquez pour coller
+            </span>
+          </div>
         )}
 
         {(mode === "select" || mode === "copy") && (
@@ -270,6 +269,7 @@ export default function Calendar() {
             text
             severity="secondary"
             onClick={cancelMode}
+            className="ml-auto"
           />
         )}
       </div>
@@ -279,7 +279,7 @@ export default function Calendar() {
         {DAY_LABELS.map((label) => (
           <div
             key={label}
-            className="text-center text-xs font-semibold text-zinc-400 dark:text-zinc-500 py-1.5 uppercase tracking-wider"
+            className="text-center text-[11px] font-bold text-gray-400 dark:text-slate-500 py-2 uppercase tracking-widest"
           >
             {label}
           </div>
@@ -287,7 +287,7 @@ export default function Calendar() {
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {cells.map((day, i) => (
           <DayCell
             key={i}
@@ -305,33 +305,46 @@ export default function Calendar() {
       </div>
 
       {/* Footer stats */}
-      <div className="mt-5 flex items-center gap-4 flex-wrap">
-        <Tag icon="pi pi-briefcase" severity="info" value={`Travail : ${totalWork}j`} />
-        <Tag icon="pi pi-book" severity="danger" value={`Formation : ${totalFormation}j`} />
-        <Tag icon="pi pi-calendar-minus" severity="warning" value={`Congé : ${totalConge}j`} />
-        <Tag
-          className="ml-auto"
-          severity="secondary"
-          value={`Total : ${totalWork + totalFormation + totalConge}j`}
-        />
+      <div className="mt-5 p-4 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+            <i className="pi pi-briefcase text-blue-500 text-xs" />
+            <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">{totalWork}j</span>
+            <span className="text-xs text-blue-500/70">travail</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20">
+            <i className="pi pi-book text-red-500 text-xs" />
+            <span className="text-sm font-semibold text-red-700 dark:text-red-300">{totalFormation}j</span>
+            <span className="text-xs text-red-500/70">formation</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20">
+            <i className="pi pi-calendar-minus text-orange-500 text-xs" />
+            <span className="text-sm font-semibold text-orange-700 dark:text-orange-300">{totalConge}j</span>
+            <span className="text-xs text-orange-500/70">congé</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-slate-700/50">
+            <span className="text-sm font-bold text-gray-700 dark:text-slate-300">{totalWork + totalFormation + totalConge}j</span>
+            <span className="text-xs text-gray-500/70">total</span>
+          </div>
+        </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex items-center gap-4 text-[11px] text-zinc-400 dark:text-zinc-500">
+      <div className="mt-3 flex items-center gap-5 text-[11px] text-gray-400 dark:text-slate-500 px-1">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20" />
+          <span className="w-3 h-3 rounded-sm border-t-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40" />
           Complet
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-amber-300 bg-amber-50 dark:bg-amber-950/20" />
+          <span className="w-3 h-3 rounded-sm border-t-2 border-amber-400 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40" />
           Incomplet
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-red-300 bg-red-50 dark:bg-red-950/20" />
+          <span className="w-3 h-3 rounded-sm border-t-2 border-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40" />
           Formation
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded border border-orange-300 bg-orange-50 dark:bg-orange-950/20" />
+          <span className="w-3 h-3 rounded-sm border-t-2 border-orange-400 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800/40" />
           Congé
         </div>
       </div>

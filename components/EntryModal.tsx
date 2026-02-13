@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
 import { AutoComplete, AutoCompleteCompleteEvent } from "primereact/autocomplete";
 import { SelectButton } from "primereact/selectbutton";
 import { Tag } from "primereact/tag";
 import { Message } from "primereact/message";
 import { Divider } from "primereact/divider";
+import { ProgressBar } from "primereact/progressbar";
 import type { Entry, FormationDay, CongeDay } from "./DayCell";
 
 interface EntryModalProps {
@@ -201,16 +203,44 @@ export default function EntryModal({
     ? `${dates.length} jours sélectionnés`
     : formatDateLong(singleDate);
 
+  const progressValue = isMulti ? 0 : Math.min((usedTime + congeTime + formationTime) * 100, 100);
+  const progressColor = progressValue >= 100 ? "#10b981" : progressValue > 0 ? "#f59e0b" : "#e2e8f0";
+
   return (
     <Dialog
-      header={header}
+      header={
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500 text-white shrink-0">
+            <i className={isMulti ? "pi pi-calendar-plus" : "pi pi-calendar"} />
+          </div>
+          <div>
+            <div className="text-base font-bold capitalize">{header}</div>
+            {!isMulti && (
+              <div className="text-xs text-color-secondary font-normal mt-0.5">
+                {usedTime + congeTime + formationTime}j / 1j rempli
+              </div>
+            )}
+          </div>
+        </div>
+      }
       visible={true}
-      style={{ width: "500px", maxHeight: "90vh" }}
+      style={{ width: "520px", maxHeight: "90vh" }}
       onHide={onClose}
       modal
       closable
       className="overflow-y-auto"
     >
+      {/* Progress bar (single mode) */}
+      {!isMulti && (
+        <div className="mb-4">
+          <ProgressBar
+            value={progressValue}
+            showValue={false}
+            style={{ height: "6px", borderRadius: "3px" }}
+            color={progressColor}
+          />
+        </div>
+      )}
       {/* Multi date subtitle */}
       {isMulti && (
         <p className="text-xs text-color-secondary mb-3">
@@ -351,39 +381,47 @@ export default function EntryModal({
       {!isMulti && !isBlocked && currentEntries.length > 0 && (
         <>
           <Divider />
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-color-secondary mb-3">
-            Entrées existantes
+          <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary mb-3 flex items-center gap-2">
+            <i className="pi pi-list text-xs" />
+            Entrées existantes ({currentEntries.length})
           </h4>
           <div className="space-y-2 mb-3">
             {currentEntries.map((entry) => (
               <div
                 key={entry.id}
-                className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                className={`group flex items-center gap-3 p-3 rounded-xl border transition-all ${
                   editingEntry?.id === entry.id
-                    ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-700"
+                    ? "border-blue-400 bg-blue-50/80 dark:bg-blue-900/20 shadow-sm"
+                    : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-sm"
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold truncate">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-bold truncate">
                       {entry.client}
                     </span>
-                    <Tag value={`${entry.time}j`} severity="info" rounded style={{ fontSize: "11px" }} />
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                      entry.time >= 1
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                    }`}>
+                      {entry.time}j
+                    </span>
                   </div>
-                  <p className="text-xs text-color-secondary truncate mt-0.5">
+                  <p className="text-xs text-color-secondary truncate">
                     {entry.comment}
-                    {entry.ticket && <span className="opacity-60"> · {entry.ticket}</span>}
+                    {entry.ticket && <span className="opacity-50"> · {entry.ticket}</span>}
                   </p>
                   {entry.type && (
                     <Tag value={entry.type} severity="secondary" style={{ fontSize: "10px", marginTop: "4px" }} />
                   )}
                 </div>
-                <div className="flex gap-1 shrink-0">
+                <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
                     icon="pi pi-pencil"
                     size="small"
                     text
+                    rounded
                     severity="info"
                     onClick={() => startEditing(entry)}
                     tooltip="Modifier"
@@ -393,6 +431,7 @@ export default function EntryModal({
                     icon="pi pi-trash"
                     size="small"
                     text
+                    rounded
                     severity="danger"
                     onClick={() => handleDelete(entry.id)}
                     tooltip="Supprimer"
@@ -409,7 +448,8 @@ export default function EntryModal({
       {isMulti && (
         <>
           <Divider />
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-color-secondary mb-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary mb-3 flex items-center gap-2">
+            <i className="pi pi-list text-xs" />
             Résumé des jours sélectionnés
           </h4>
           <div className="space-y-1.5 max-h-40 overflow-y-auto mb-3">
@@ -419,17 +459,29 @@ export default function EntryModal({
               const isFmt = formationDays.some((f) => f.date.startsWith(d));
               const cng = congeDays.find((c) => c.date.startsWith(d));
               return (
-                <div key={d} className="flex items-center justify-between text-sm py-1.5 px-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div key={d} className="flex items-center justify-between text-sm py-2 px-3 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50">
                   <span className="font-medium capitalize">{formatDate(d)}</span>
-                  {isFmt && <Tag value="Formation" severity="danger" style={{ fontSize: "11px" }} />}
-                  {cng && <Tag value={`Congé${cng.time < 1 ? ` (${cng.time}j)` : ""}`} severity="warning" style={{ fontSize: "11px" }} />}
-                  {!isFmt && !cng && (
-                    <Tag
-                      value={`${total}j`}
-                      severity={total >= 1 ? "success" : total > 0 ? "warning" : "secondary"}
-                      style={{ fontSize: "11px" }}
-                    />
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {isFmt && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Formation</span>
+                    )}
+                    {cng && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                        Congé{cng.time < 1 ? ` ${cng.time}j` : ""}
+                      </span>
+                    )}
+                    {!isFmt && !cng && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        total >= 1
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                          : total > 0
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                          : "bg-gray-100 text-gray-500 dark:bg-slate-700/50 dark:text-slate-400"
+                      }`}>
+                        {total}j
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -532,7 +584,8 @@ export default function EntryModal({
           <Divider />
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-color-secondary">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-color-secondary flex items-center gap-2">
+                <i className={editingEntry ? "pi pi-pencil" : "pi pi-plus-circle"} style={{ fontSize: "12px" }} />
                 {editingEntry ? "Modifier l'entrée" : isMulti ? "Ajouter sur tous les jours" : "Nouvelle entrée"}
               </h4>
               {editingEntry && (
@@ -548,8 +601,11 @@ export default function EntryModal({
             </div>
 
             {/* Client */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-color-secondary">Client</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-color-secondary">
+                <i className="pi pi-building mr-1" style={{ fontSize: "11px" }} />
+                Client
+              </label>
               <AutoComplete
                 value={client}
                 suggestions={filteredClients}
@@ -562,9 +618,10 @@ export default function EntryModal({
             </div>
 
             {/* Ticket */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-color-secondary">
-                Ticket <span className="opacity-50 font-normal">(optionnel)</span>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-color-secondary">
+                <i className="pi pi-ticket mr-1" style={{ fontSize: "11px" }} />
+                Ticket <span className="opacity-40 font-normal">(optionnel)</span>
               </label>
               <InputText
                 value={ticket}
@@ -575,47 +632,55 @@ export default function EntryModal({
             </div>
 
             {/* Comment */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-color-secondary">Commentaire</label>
-              <InputText
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-color-secondary">
+                <i className="pi pi-align-left mr-1" style={{ fontSize: "11px" }} />
+                Commentaire
+              </label>
+              <InputTextarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Description de la tâche..."
                 className="w-full"
+                rows={2}
+                autoResize
               />
             </div>
 
-            {/* Time */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-color-secondary">
-                Temps
-                {!isMulti && !editingEntry && (
-                  <span className="font-normal opacity-50 ml-1">(restant : {remainingTime}j)</span>
+            {/* Time + Type row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-clock mr-1" style={{ fontSize: "11px" }} />
+                  Temps
+                  {!isMulti && !editingEntry && (
+                    <span className="font-normal opacity-40 ml-1">({remainingTime}j dispo)</span>
+                  )}
+                </label>
+                {timeOptions.length > 0 && (
+                  <SelectButton
+                    value={time}
+                    onChange={(e) => setTime(e.value)}
+                    options={timeOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                  />
                 )}
-              </label>
-              {timeOptions.length > 0 && (
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-tag mr-1" style={{ fontSize: "11px" }} />
+                  Type <span className="opacity-40 font-normal">(opt.)</span>
+                </label>
                 <SelectButton
-                  value={time}
-                  onChange={(e) => setTime(e.value)}
-                  options={timeOptions}
+                  value={type}
+                  onChange={(e) => setType(e.value)}
+                  options={typeOptions}
                   optionLabel="label"
                   optionValue="value"
                 />
-              )}
-            </div>
-
-            {/* Type */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-color-secondary">
-                Type <span className="opacity-50 font-normal">(optionnel)</span>
-              </label>
-              <SelectButton
-                value={type}
-                onChange={(e) => setType(e.value)}
-                options={typeOptions}
-                optionLabel="label"
-                optionValue="value"
-              />
+              </div>
             </div>
 
             {/* Submit */}
@@ -630,10 +695,11 @@ export default function EntryModal({
                   ? `Ajouter sur ${dates.length} jours`
                   : "Ajouter"
               }
-              icon="pi pi-check"
+              icon={editingEntry ? "pi pi-check" : "pi pi-plus"}
               loading={saving}
               disabled={saving || !client || !comment}
               className="w-full"
+              severity={editingEntry ? "info" : undefined}
             />
           </form>
         </>
@@ -641,8 +707,9 @@ export default function EntryModal({
 
       {/* Full day message (single mode) */}
       {!isMulti && !isBlocked && !canAdd && !editingEntry && currentEntries.length > 0 && (
-        <div className="mt-4 text-center">
-          <Tag value="Journée complète (1j)" severity="secondary" />
+        <div className="mt-4 text-center py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40">
+          <i className="pi pi-check-circle text-emerald-500 mr-2" />
+          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Journée complète</span>
         </div>
       )}
     </Dialog>

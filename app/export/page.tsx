@@ -80,10 +80,18 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6">Export</h1>
+    <div className="page-container" style={{ maxWidth: "42rem" }}>
+      <div className="page-header">
+        <div className="page-icon" style={{ backgroundColor: "#10b981" }}>
+          <i className="pi pi-download" />
+        </div>
+        <div>
+          <h1>Export</h1>
+          <p className="page-subtitle">Téléchargez vos données de chiffrage</p>
+        </div>
+      </div>
 
-      <Card className="shadow-none border">
+      <Card className="shadow-sm border animate-fade-in-up"  style={{ borderRadius: "0.75rem" }}>
         <div className="space-y-5">
           <SelectButton
             value={mode}
@@ -95,8 +103,11 @@ export default function ExportPage() {
 
           {mode === "month" ? (
             <div className="flex gap-4 items-end flex-wrap">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-color-secondary">Mois</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
+                  Mois
+                </label>
                 <Dropdown
                   value={month}
                   onChange={(e) => setMonth(e.value)}
@@ -106,8 +117,11 @@ export default function ExportPage() {
                   className="w-48"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-color-secondary">Année</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-hashtag mr-1" style={{ fontSize: "11px" }} />
+                  Année
+                </label>
                 <InputNumber
                   value={year}
                   onValueChange={(e) => setYear(e.value ?? now.getFullYear())}
@@ -118,8 +132,11 @@ export default function ExportPage() {
             </div>
           ) : (
             <div className="flex gap-4 items-end flex-wrap">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-color-secondary">Du</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
+                  Du
+                </label>
                 <Calendar
                   value={fromDate}
                   onChange={(e) => setFromDate(e.value as Date | null)}
@@ -128,8 +145,11 @@ export default function ExportPage() {
                   className="w-48"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-color-secondary">Au</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-color-secondary">
+                  <i className="pi pi-calendar mr-1" style={{ fontSize: "11px" }} />
+                  Au
+                </label>
                 <Calendar
                   value={toDate}
                   onChange={(e) => setToDate(e.value as Date | null)}
@@ -141,18 +161,20 @@ export default function ExportPage() {
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-3">
             <Button
               label="Export CSV"
               icon="pi pi-file"
               severity="info"
               onClick={() => handleExport("csv")}
+              className="flex-1"
             />
             <Button
               label="Export Excel"
               icon="pi pi-file-excel"
               severity="success"
               onClick={() => handleExport("excel")}
+              className="flex-1"
             />
           </div>
         </div>

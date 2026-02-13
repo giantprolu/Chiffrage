@@ -75,15 +75,20 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4 md:p-6">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold">Importer un emploi du temps</h1>
-        <p className="text-sm text-color-secondary mt-1">
-          Importez vos données depuis un fichier Excel (.xlsx) ou CSV.
-        </p>
+    <div className="page-container" style={{ maxWidth: "36rem" }}>
+      <div className="page-header">
+        <div className="page-icon" style={{ backgroundColor: "#8b5cf6" }}>
+          <i className="pi pi-upload" />
+        </div>
+        <div>
+          <h1>Importer un emploi du temps</h1>
+          <p className="page-subtitle">
+            Importez vos données depuis un fichier Excel (.xlsx) ou CSV
+          </p>
+        </div>
       </div>
 
-      <Card className="shadow-sm">
+      <Card className="shadow-sm animate-fade-in-up" style={{ borderRadius: "0.75rem" }}>
         <div className="space-y-5">
           {/* Format info */}
           <Message

@@ -1,2 +1,1 @@
-- [ ] Pouvoir supprimer son compte COMPLèTEMENT
-- [ ] fix bug in logs.md
+- [ ] Revoir l'ux/ui toujours en utilisant primereact

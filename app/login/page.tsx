@@ -53,11 +53,18 @@ export default function LoginPage() {
   };
 
   const formContent = (
-    <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-      {error && <Message severity="error" text={error} className="w-full" />}
+    <form onSubmit={handleSubmit} className="space-y-5 pt-3">
+      {error && (
+        <Message
+          severity="error"
+          text={error}
+          className="w-full animate-scale-in"
+        />
+      )}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="username" className="text-sm font-semibold text-color-secondary">
+        <label htmlFor="username" className="text-sm font-bold text-color-secondary flex items-center gap-1.5">
+          <i className="pi pi-user" style={{ fontSize: "12px" }} />
           Nom d&apos;utilisateur
         </label>
         <InputText
@@ -72,7 +79,8 @@ export default function LoginPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="password" className="text-sm font-semibold text-color-secondary">
+        <label htmlFor="password" className="text-sm font-bold text-color-secondary flex items-center gap-1.5">
+          <i className="pi pi-lock" style={{ fontSize: "12px" }} />
           Mot de passe
         </label>
         <Password
@@ -96,27 +104,31 @@ export default function LoginPage() {
             ? "Chargement..."
             : mode === "login"
             ? "Se connecter"
-            : "S'inscrire"
+            : "Créer le compte"
         }
-        icon={loading ? "pi pi-spin pi-spinner" : "pi pi-sign-in"}
+        icon={loading ? "pi pi-spin pi-spinner" : mode === "login" ? "pi pi-sign-in" : "pi pi-user-plus"}
         loading={loading}
         disabled={loading}
         className="w-full"
+        size="large"
       />
     </form>
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-color">Chiffrage</h1>
-          <p className="text-sm text-color-secondary mt-1">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+      <div className="w-full max-w-md animate-fade-in-up">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-500 text-white mb-4 shadow-lg shadow-blue-500/25">
+            <i className="pi pi-calendar-plus text-2xl" />
+          </div>
+          <h1 className="text-3xl font-extrabold text-color tracking-tight">Chiffrage</h1>
+          <p className="text-sm text-color-secondary mt-2">
             Suivi du chiffrage quotidien
           </p>
         </div>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-xl border-0" style={{ borderRadius: "1rem" }}>
           <TabView
             activeIndex={activeIndex}
             onTabChange={(e) => {
@@ -132,6 +144,10 @@ export default function LoginPage() {
             </TabPanel>
           </TabView>
         </Card>
+
+        <p className="text-center text-xs text-color-secondary mt-6 opacity-60">
+          &copy; {new Date().getFullYear()} Chiffrage • Nathan
+        </p>
       </div>
     </div>
   );
