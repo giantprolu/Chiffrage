@@ -15,7 +15,7 @@ interface EntryModalProps {
   onToggleConge: (date: string, time?: number) => void;
 }
 
-const TYPES = ["Evolution", "Correctif", "Formation", "Support"];
+const TYPES = ["Evolution", "Correctif", "Formation", "Support", "Création"];
 
 function formatDate(date: string): string {
   return new Date(date + "T00:00:00").toLocaleDateString("fr-FR", {
