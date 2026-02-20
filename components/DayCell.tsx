@@ -57,6 +57,23 @@ export default function DayCell({
 
   const interactive = !isWeekend;
 
+  const ariaLabel = interactive
+    ? [
+        `Jour ${day}`,
+        isToday ? "Aujourd'hui" : null,
+        isFormation ? `Formation : ${formationDay?.label}` : null,
+        isConge ? `Congé : ${congeDay?.label}` : null,
+        totalTime > 0 ? `${totalTime} jour(s) imputé(s)` : "Non imputé",
+        entries.length > 0
+          ? entries.map((e) => `${e.client} (${e.time}j)`).join(", ")
+          : null,
+        isSelected ? "Sélectionné" : null,
+        isCopyMode && totalTime < 1 ? "Coller ici" : null,
+      ]
+        .filter(Boolean)
+        .join(". ")
+    : undefined;
+
   const accentClass: Record<string, string> = {
     formation: "accent-red",
     conge: "accent-orange",
@@ -74,10 +91,23 @@ export default function DayCell({
 
   return (
     <div
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
       onClick={interactive ? onClick : undefined}
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
       className={cellClasses}
       style={!interactive ? { cursor: "default" } : undefined}
-      title={entries.length > 0 ? entries.map(e => `${e.client} (${e.time}j) — ${e.comment}`).join('\n') : undefined}
+      aria-label={ariaLabel}
+      aria-pressed={interactive ? isSelected : undefined}
     >
       <div className="day-header">
         <span className={`day-number ${isToday ? "today-badge" : ""}`}>
@@ -92,14 +122,14 @@ export default function DayCell({
 
       {isFormation && (
         <span className="day-badge formation">
-          <i className="pi pi-book" style={{ fontSize: 8, marginRight: 2 }} />
+          <i className="pi pi-book" aria-hidden="true" style={{ fontSize: 8, marginRight: 2 }} />
           {formationDay.label}{formationTime < 1 ? ` ${formationTime}j` : ""}
         </span>
       )}
 
       {isConge && (
         <span className="day-badge conge">
-          <i className="pi pi-calendar-minus" style={{ fontSize: 8, marginRight: 2 }} />
+          <i className="pi pi-calendar-minus" aria-hidden="true" style={{ fontSize: 8, marginRight: 2 }} />
           {congeDay.label}{congeTime < 1 ? ` ${congeTime}j` : ""}
         </span>
       )}
@@ -120,13 +150,13 @@ export default function DayCell({
 
       {status === "empty" && (
         <div className="day-empty-icon">
-          <i className="pi pi-plus" />
+          <i className="pi pi-plus" aria-hidden="true" />
         </div>
       )}
 
       {isCopyMode && !isBlocked && totalTime < 1 && (
         <div className="day-paste">
-          <i className="pi pi-clipboard" style={{ fontSize: 8, marginRight: 2 }} />
+          <i className="pi pi-clipboard" aria-hidden="true" style={{ fontSize: 8, marginRight: 2 }} />
           Coller
         </div>
       )}
